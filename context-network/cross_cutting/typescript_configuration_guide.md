@@ -1,7 +1,7 @@
-# TypeScript Configuration Guide for Node.js Projects
+# TypeScript Configuration Guide for LLM Agent Projects
 
 ## Purpose
-This document provides comprehensive guidelines for configuring TypeScript in Node.js projects, including tsconfig.json best practices, compiler options, and project structure recommendations.
+This document provides comprehensive guidelines for configuring TypeScript in LLM agent projects using the Mastra framework, including tsconfig.json best practices, compiler options, and agent-specific project structure recommendations.
 
 ## Classification
 - **Domain:** Cross-Cutting
@@ -37,7 +37,7 @@ This document provides comprehensive guidelines for configuring TypeScript in No
 
 ### Recommended Base Configuration
 
-#### Standard Node.js TypeScript Configuration
+#### Standard Mastra Agent TypeScript Configuration
 
 ```json
 {
@@ -108,139 +108,172 @@ This document provides comprehensive guidelines for configuring TypeScript in No
 }
 ```
 
-#### Project-Specific Configurations
+#### Agent-Specific Configurations
 
-**Frontend Projects (React/Vue with Node.js backend):**
+**Mastra Agent Projects:**
 ```json
 {
   "compilerOptions": {
-    "target": "ES2020",
-    "module": "ESNext",
-    "moduleResolution": "bundler",
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
-    "jsx": "react-jsx",                    // For React projects
-    "allowImportingTsExtensions": true,
-    "noEmit": true,                        // Let bundler handle emission
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "lib": ["ES2022"],
+    "outDir": "./dist",
+    "rootDir": "./src",
     "strict": true,
-    "skipLibCheck": true
-  }
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "experimentalDecorators": true,        // For Mastra decorators
+    "emitDecoratorMetadata": true,         // For dependency injection
+    "types": ["node"],
+    "resolveJsonModule": true,             // For configuration files
+    "allowSyntheticDefaultImports": true
+  },
+  "include": [
+    "src/**/*",
+    "src/mastra/**/*"                      // Include Mastra-specific files
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/*.test.ts"
+  ]
 }
 ```
 
-**Library/Package Development:**
+**Agent Tool Development:**
 ```json
 {
   "compilerOptions": {
-    "target": "ES2018",                    // Broader compatibility
-    "module": "CommonJS",                  // For npm package compatibility
-    "declaration": true,
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "declaration": true,                   // For tool type definitions
     "declarationMap": true,
-    "outDir": "./lib",
+    "outDir": "./dist",
     "rootDir": "./src",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "composite": true                      // Enable project references
+    "composite": true,                     // Enable project references
+    "types": ["node", "@mastra/core"]      // Include Mastra types
   }
 }
 ```
 
-**CLI Applications:**
+**Agent Workflow Projects:**
 ```json
 {
   "compilerOptions": {
     "target": "ES2022",
-    "module": "CommonJS",
-    "outDir": "./bin",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "outDir": "./dist",
     "rootDir": "./src",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "types": ["node"]                      // Only include Node.js types
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "types": ["node", "@mastra/core"],
+    "baseUrl": "./src",
+    "paths": {
+      "@/agents/*": ["mastra/agents/*"],
+      "@/tools/*": ["mastra/tools/*"],
+      "@/workflows/*": ["mastra/workflows/*"],
+      "@/config/*": ["config/*"]
+    }
   }
 }
 ```
 
-### Configuration Strategies by Project Type
+### Configuration Strategies by Agent Type
 
-#### Express.js API Server
+#### Conversational Agent
 
 ```json
 {
   "compilerOptions": {
     "target": "ES2022",
-    "module": "CommonJS",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     "outDir": "./dist",
     "rootDir": "./src",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "sourceMap": true,
-    "declaration": false,
-    "types": ["node", "express"]
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "types": ["node", "@mastra/core"],
+    "baseUrl": "./src",
+    "paths": {
+      "@/agents/*": ["mastra/agents/*"],
+      "@/memory/*": ["mastra/memory/*"],
+      "@/config/*": ["config/*"]
+    }
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist", "**/*.test.ts"]
 }
 ```
 
-#### Next.js Application
+#### Multi-Tool Agent
 
 ```json
 {
   "compilerOptions": {
-    "target": "ES5",
-    "lib": ["DOM", "DOM.Iterable", "ES6"],
-    "allowJs": true,
-    "skipLibCheck": true,
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "declaration": true,
+    "declarationMap": true,
+    "outDir": "./dist",
+    "rootDir": "./src",
     "strict": true,
-    "forceConsistentCasingInFileNames": true,
-    "noEmit": true,
     "esModuleInterop": true,
-    "module": "ESNext",
-    "moduleResolution": "bundler",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "jsx": "preserve",
-    "incremental": true,
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
-    "baseUrl": ".",
+    "skipLibCheck": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "types": ["node", "@mastra/core", "@mastra/github", "@mastra/slack"],
+    "baseUrl": "./src",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/agents/*": ["mastra/agents/*"],
+      "@/tools/*": ["mastra/tools/*"],
+      "@/integrations/*": ["mastra/integrations/*"]
     }
-  },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules"]
+  }
 }
 ```
 
-#### NestJS Application
+#### Workflow-Orchestrated Agent
 
 ```json
 {
   "compilerOptions": {
-    "module": "CommonJS",
-    "declaration": true,
-    "removeComments": true,
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true,
-    "allowSyntheticDefaultImports": true,
-    "target": "ES2020",
-    "sourceMap": true,
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     "outDir": "./dist",
-    "baseUrl": "./",
-    "incremental": true,
+    "rootDir": "./src",
+    "strict": true,
+    "esModuleInterop": true,
     "skipLibCheck": true,
-    "strictNullChecks": false,
-    "noImplicitAny": false,
-    "strictBindCallApply": false,
-    "forceConsistentCasingInFileNames": false,
-    "noFallthroughCasesInSwitch": false
-  }
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "types": ["node", "@mastra/core"],
+    "baseUrl": "./src",
+    "paths": {
+      "@/workflows/*": ["mastra/workflows/*"],
+      "@/steps/*": ["mastra/workflows/steps/*"],
+      "@/agents/*": ["mastra/agents/*"],
+      "@/tools/*": ["mastra/tools/*"]
+    }
+  },
+  "include": [
+    "src/**/*",
+    "src/mastra/workflows/**/*"
+  ]
 }
 ```
 
@@ -323,7 +356,7 @@ This document provides comprehensive guidelines for configuring TypeScript in No
 
 ### Path Mapping and Module Resolution
 
-#### Path Mapping Configuration
+#### Path Mapping Configuration for Agents
 
 ```json
 {
@@ -331,11 +364,14 @@ This document provides comprehensive guidelines for configuring TypeScript in No
     "baseUrl": "./src",
     "paths": {
       "@/*": ["*"],
-      "@/components/*": ["components/*"],
-      "@/services/*": ["services/*"],
-      "@/utils/*": ["utils/*"],
+      "@/agents/*": ["mastra/agents/*"],
+      "@/tools/*": ["mastra/tools/*"],
+      "@/workflows/*": ["mastra/workflows/*"],
+      "@/memory/*": ["mastra/memory/*"],
+      "@/config/*": ["config/*"],
       "@/types/*": ["types/*"],
-      "@/config/*": ["config/*"]
+      "@/utils/*": ["utils/*"],
+      "@/integrations/*": ["mastra/integrations/*"]
     }
   }
 }
@@ -404,7 +440,7 @@ This document provides comprehensive guidelines for configuring TypeScript in No
 
 ### Type Declaration Management
 
-#### Custom Type Declarations
+#### Custom Type Declarations for Agents
 
 **types/global.d.ts:**
 ```typescript
@@ -412,9 +448,14 @@ declare global {
   namespace NodeJS {
     interface ProcessEnv {
       NODE_ENV: 'development' | 'production' | 'test';
-      DATABASE_URL: string;
-      JWT_SECRET: string;
-      PORT?: string;
+      OPENROUTER_API_KEY: string;
+      OPENROUTER_HTTP_REFERER?: string;
+      OPENROUTER_X_TITLE?: string;
+      MASTRA_LOG_LEVEL?: 'DEBUG' | 'INFO' | 'WARN' | 'ERROR';
+      UPSTASH_REDIS_URL?: string;
+      UPSTASH_REDIS_TOKEN?: string;
+      DAILY_BUDGET?: string;
+      WEEKLY_BUDGET?: string;
     }
   }
 }
@@ -424,42 +465,120 @@ declare module '*.json' {
   export default value;
 }
 
+// Mastra-specific type augmentations
+declare module '@mastra/core' {
+  interface AgentContext {
+    userId?: string;
+    sessionId?: string;
+    metadata?: Record<string, any>;
+  }
+}
+
 export {};
 ```
 
-#### Module Augmentation
+#### Agent-Specific Module Augmentation
 
 ```typescript
-// types/express.d.ts
-import { User } from '../src/types/user';
+// types/mastra.d.ts
+import { Agent, Tool, Workflow } from '@mastra/core';
 
-declare global {
-  namespace Express {
-    interface Request {
-      user?: User;
-    }
+declare module '@mastra/core' {
+  interface MastraConfig {
+    agents: Record<string, Agent>;
+    tools: Record<string, Tool>;
+    workflows: Record<string, Workflow>;
+    openRouter?: {
+      apiKey: string;
+      defaultModel?: string;
+      fallbackModel?: string;
+    };
   }
+}
+
+// Custom tool types
+export interface CustomToolContext {
+  userId: string;
+  sessionId: string;
+  permissions: string[];
+}
+
+// Agent response types
+export interface AgentResponse<T = any> {
+  content: string;
+  data?: T;
+  metadata: {
+    model: string;
+    tokens: {
+      input: number;
+      output: number;
+      total: number;
+    };
+    cost: number;
+    latency: number;
+  };
 }
 ```
 
 ### Configuration Validation
 
-#### Runtime Configuration Validation
+#### Runtime Configuration Validation for Agents
 
 ```typescript
-// src/config/typescript.ts
+// src/config/agent-config.ts
 import { z } from 'zod';
 
-const TypeScriptConfigSchema = z.object({
-  strict: z.boolean(),
-  target: z.string(),
-  module: z.string(),
-  outDir: z.string(),
-  rootDir: z.string()
+const AgentConfigSchema = z.object({
+  name: z.string(),
+  instructions: z.string(),
+  model: z.object({
+    provider: z.literal('OPEN_ROUTER'),
+    name: z.string(),
+    apiKey: z.string(),
+    temperature: z.number().min(0).max(2).optional(),
+    maxTokens: z.number().positive().optional(),
+  }),
+  tools: z.record(z.string()).optional(),
+  memory: z.union([
+    z.boolean(),
+    z.object({
+      type: z.enum(['thread', 'semantic']),
+      maxMessages: z.number().positive().optional(),
+      summarizeAfter: z.number().positive().optional(),
+    })
+  ]).optional(),
 });
 
-export const validateTypeScriptConfig = (config: unknown) => {
-  return TypeScriptConfigSchema.parse(config);
+const OpenRouterConfigSchema = z.object({
+  apiKey: z.string().startsWith('sk-or-'),
+  baseURL: z.string().url(),
+  defaultHeaders: z.record(z.string()).optional(),
+  models: z.object({
+    premium: z.record(z.string()),
+    fast: z.record(z.string()),
+    specialized: z.record(z.string()),
+  }),
+});
+
+export const validateAgentConfig = (config: unknown) => {
+  return AgentConfigSchema.parse(config);
+};
+
+export const validateOpenRouterConfig = (config: unknown) => {
+  return OpenRouterConfigSchema.parse(config);
+};
+
+// Environment validation
+const EnvSchema = z.object({
+  OPENROUTER_API_KEY: z.string().startsWith('sk-or-'),
+  NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
+  MASTRA_LOG_LEVEL: z.enum(['DEBUG', 'INFO', 'WARN', 'ERROR']).default('INFO'),
+  DAILY_BUDGET: z.string().transform(Number).pipe(z.number().positive()).optional(),
+  WEEKLY_BUDGET: z.string().transform(Number).pipe(z.number().positive()).optional(),
+});
+
+export const validateEnvironment = () => {
+  return EnvSchema.parse(process.env);
 };
 ```
 
@@ -538,7 +657,7 @@ export const validateTypeScriptConfig = (config: unknown) => {
 
 ### Tools and Integration
 
-#### Package.json Scripts
+#### Package.json Scripts for Agents
 
 ```json
 {
@@ -547,7 +666,18 @@ export const validateTypeScriptConfig = (config: unknown) => {
     "build:watch": "tsc --watch",
     "build:prod": "tsc --project tsconfig.prod.json",
     "type-check": "tsc --noEmit",
-    "type-check:watch": "tsc --noEmit --watch"
+    "type-check:watch": "tsc --noEmit --watch",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "test": "vitest",
+    "test:agents": "vitest run tests/agents",
+    "test:tools": "vitest run tests/tools",
+    "test:workflows": "vitest run tests/workflows",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "eslint src --ext .ts --fix",
+    "agent:create": "npx @mastra/cli agent create",
+    "tool:create": "npx @mastra/cli tool create",
+    "workflow:create": "npx @mastra/cli workflow create"
   }
 }
 ```
@@ -568,15 +698,16 @@ export const validateTypeScriptConfig = (config: unknown) => {
 - **Parent Nodes:** None
 - **Child Nodes:** None
 - **Related Nodes:** 
-  - [cross_cutting/nodejs_security_guide.md] - complements - TypeScript security considerations
-  - [processes/creation.md] - implements - TypeScript setup in creation process
-  - [meta/templates/node_framework_decision_template.md] - guides - Framework-specific TypeScript configuration
+  - [cross_cutting/mastra_integration_guide.md] - complements - Mastra framework TypeScript integration
+  - [cross_cutting/openrouter_configuration_guide.md] - uses - OpenRouter API TypeScript types
+  - [cross_cutting/nodejs_security_guide.md] - complements - TypeScript security considerations for agents
+  - [processes/creation.md] - implements - TypeScript setup in agent creation process
 
 ## Navigation Guidance
-- **Access Context:** Use this document when setting up TypeScript configuration or optimizing existing setups
-- **Common Next Steps:** After configuring TypeScript, typically set up linting, testing, and build processes
-- **Related Tasks:** Project setup, build optimization, type safety implementation
-- **Update Patterns:** This document should be updated when new TypeScript versions introduce breaking changes or new features
+- **Access Context:** Use this document when setting up TypeScript configuration for LLM agents or optimizing existing agent setups
+- **Common Next Steps:** After configuring TypeScript, typically set up Mastra integration, OpenRouter configuration, and agent testing
+- **Related Tasks:** Agent project setup, build optimization, type safety implementation, Mastra integration
+- **Update Patterns:** This document should be updated when new TypeScript versions, Mastra framework updates, or agent development patterns introduce breaking changes or new features
 
 ## Metadata
 - **Created:** 2025-06-26
@@ -585,4 +716,5 @@ export const validateTypeScriptConfig = (config: unknown) => {
 - **Sources:** TypeScript Official Documentation, TSConfig Reference, Total TypeScript
 
 ## Change History
+- 2025-06-30: Transformed to focus on TypeScript LLM agent development with Mastra framework
 - 2025-06-26: Initial creation based on current TypeScript best practices and configuration recommendations
