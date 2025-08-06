@@ -301,6 +301,8 @@ export const notificationTool = createTool({
 
 ### Workflow Orchestration
 
+> **CRITICAL**: Before implementing workflows, read the [Mastra Workflow Data Flow Patterns](./mastra_workflow_patterns.md) guide. Understanding the "relay race" model is essential to avoid the most common workflow failures.
+
 #### Basic Workflow Patterns
 
 ```typescript
@@ -739,7 +741,8 @@ export const robustTool = createTool({
 
 ## Relationships
 - **Parent Nodes:** None
-- **Child Nodes:** None
+- **Child Nodes:** 
+  - [cross_cutting/mastra_workflow_patterns.md] - specialized-guidance - Critical workflow data flow patterns
 - **Related Nodes:** 
   - [foundation/system_overview.md] - implements - System architecture with Mastra
   - [cross_cutting/openrouter_configuration_guide.md] - complements - Model provider integration

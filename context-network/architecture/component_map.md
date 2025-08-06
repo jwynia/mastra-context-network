@@ -13,67 +13,85 @@ This document provides a map of all components in the system, their relationship
 
 ### Component Overview
 
-The system is composed of the following major components and their relationships:
+The system is composed of the following major components specific to Mastra-based LLM agent projects:
 
 ```mermaid
 flowchart TD
-    %% Frontend Components
-    Frontend[Frontend Layer]
-    Frontend --> UI1[UI Component 1]
-    Frontend --> UI2[UI Component 2]
-    Frontend --> UI3[UI Component 3]
+    %% Core Mastra Components
+    Mastra[Mastra Core]
+    Mastra --> Agents[Agents]
+    Mastra --> Tools[Tools]
+    Mastra --> Workflows[Workflows]
+    Mastra --> Memory[Memory Management]
     
-    %% API Layer
-    API[API Layer]
-    UI1 --> API
-    UI2 --> API
-    UI3 --> API
+    %% Agent Components
+    Agents --> Agent1[Task Agent]
+    Agents --> Agent2[Analysis Agent]
+    Agents --> Agent3[Custom Agents]
     
-    %% Business Logic Components
-    BL[Business Logic Layer]
-    API --> BL
-    BL --> BL1[Business Component 1]
-    BL --> BL2[Business Component 2]
-    BL --> BL3[Business Component 3]
+    %% Tool Components
+    Tools --> Tool1[File System Tool]
+    Tools --> Tool2[API Tool]
+    Tools --> Tool3[Custom Tools]
     
-    %% Data Access Components
-    DAL[Data Access Layer]
-    BL1 --> DAL
-    BL2 --> DAL
-    BL3 --> DAL
-    DAL --> DB[(Database)]
+    %% Workflow Components
+    Workflows --> WF1[Sequential Workflows]
+    Workflows --> WF2[Branching Workflows]
+    Workflows --> WF3[Parallel Workflows]
+    
+    %% Memory Providers
+    Memory --> Mem1[Redis Memory]
+    Memory --> Mem2[Thread Memory]
+    Memory --> Mem3[Semantic Memory]
     
     %% External Integrations
-    BL2 --> EXT1[External System 1]
-    BL3 --> EXT2[External System 2]
+    Mastra --> OpenRouter[OpenRouter API]
+    Mastra --> ExtTools[External Tools]
     
     %% Cross-cutting Concerns
     CC[Cross-cutting Concerns]
-    CC --> CC1[Logging]
-    CC --> CC2[Security]
-    CC --> CC3[Error Handling]
+    CC --> CC1[Error Handling]
+    CC --> CC2[Logging]
+    CC --> CC3[Schema Validation]
     CC --> CC4[Configuration]
     
-    CC1 -.-> Frontend
-    CC1 -.-> API
-    CC1 -.-> BL
-    CC1 -.-> DAL
+    CC1 -.-> Agents
+    CC1 -.-> Tools
+    CC1 -.-> Workflows
     
-    CC2 -.-> Frontend
-    CC2 -.-> API
-    CC2 -.-> BL
-    CC2 -.-> DAL
-    
-    CC3 -.-> Frontend
-    CC3 -.-> API
-    CC3 -.-> BL
-    CC3 -.-> DAL
-    
-    CC4 -.-> Frontend
-    CC4 -.-> API
-    CC4 -.-> BL
-    CC4 -.-> DAL
+    CC3 -.-> Agents
+    CC3 -.-> Tools
+    CC3 -.-> Workflows
 ```
+
+### Workflow Components
+
+Workflow components orchestrate multi-step agent operations using a **relay race data flow model**:
+
+```mermaid
+graph TD
+    WF[Workflows] --> S1[Step 1]
+    WF --> S2[Step 2]
+    WF --> S3[Step 3]
+    S1 --> A[Agents]
+    S2 --> T[Tools]
+    S3 --> A
+    
+    S1 -.->|"Data Output 1"| S2
+    S2 -.->|"Data Output 2"| S3
+```
+
+**Key Aspects:**
+- Step-based execution model with explicit data passing
+- **Critical:** Each step only receives the previous step's output (relay race model)
+- Conditional branching support
+- Parallel execution capabilities
+- Error handling and recovery
+
+**Data Flow Considerations:**
+- Steps must explicitly pass data forward using spread operators
+- No automatic context accumulation between steps
+- See [Workflow Data Flow Patterns](../cross_cutting/mastra_workflow_patterns.md) for critical guidance
 
 ### Component Inventory
 
@@ -192,6 +210,8 @@ flowchart TD
   - [foundation/system_overview.md] - summarizes - High-level system overview
   - [architecture/data_architecture.md] - details - Data flows between components
   - [architecture/integration_patterns.md] - details - How components communicate
+  - [architecture/workflow_architecture.md] - details - Workflow relay race architecture
+  - [cross_cutting/mastra_workflow_patterns.md] - implementation - Workflow data flow patterns
 
 ## Navigation Guidance
 - **Access Context:** Use this document when needing to understand the components that make up the system and their relationships

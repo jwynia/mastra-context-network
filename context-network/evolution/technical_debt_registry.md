@@ -34,7 +34,7 @@ This registry organizes technical debt items in multiple ways to help you find r
 
 | ID | Title | Type | Priority | Area | Suggested Timeframe |
 |----|-------|------|----------|------|---------------------|
-| *None yet* |
+| TD_001 | Workflow Data Accumulation Assumption | Architecture Debt | High | Workflows | Next Sprint |
 
 ### Technical Debt by Priority
 
@@ -42,7 +42,7 @@ This registry organizes technical debt items in multiple ways to help you find r
 - *None yet*
 
 #### High
-- *None yet*
+- **TD_001**: Workflow Data Accumulation Assumption - Developers often assume Mastra workflows accumulate data across steps like a snowball, when they actually operate on a relay race model
 
 #### Medium
 - *None yet*
@@ -52,8 +52,8 @@ This registry organizes technical debt items in multiple ways to help you find r
 
 ### Technical Debt by Area
 
-#### Component 1
-- *None yet*
+#### Workflows
+- **TD_001**: Workflow Data Accumulation Assumption - Anti-pattern where developers expect automatic data accumulation between workflow steps
 
 #### Component 2
 - *None yet*
@@ -61,7 +61,7 @@ This registry organizes technical debt items in multiple ways to help you find r
 ### Technical Debt by Type
 
 #### Architecture Debt
-- *None yet*
+- **TD_001**: Workflow Data Accumulation Assumption - Fundamental misunderstanding of Mastra's relay race workflow architecture leads to 90% of workflow failures
 
 #### Code Debt
 - *None yet*
@@ -93,7 +93,7 @@ This registry organizes technical debt items in multiple ways to help you find r
 - *None yet*
 
 #### Developer Experience Impact
-- *None yet*
+- **TD_001**: Workflow Data Accumulation Assumption - Causes hours of debugging for what should be simple data passing issues, significantly impacting developer productivity
 
 ### Recording New Technical Debt
 
