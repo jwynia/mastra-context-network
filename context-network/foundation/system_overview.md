@@ -175,6 +175,9 @@ The system leverages modern TypeScript and AI technologies:
 | Tools | REST APIs, File Systems, Databases | Comprehensive external system integration |
 | Deployment | Node.js, Docker, Cloud Platforms | Scalable and maintainable deployment options |
 
+#### Reference Documentation
+Comprehensive Mastra framework documentation is available locally at `/workspaces/mastra-context-network/reference/mastra-docs/`. See [foundation/reference_resources.md] for detailed documentation structure and usage guidelines.
+
 ### Deployment Model
 
 The system supports flexible deployment patterns from development to production:
@@ -249,6 +252,7 @@ The system is designed to evolve with the rapidly advancing LLM and agent ecosys
   - [architecture/component_map.md] - details - Mastra component relationships
 - **Related Nodes:** 
   - [foundation/agent_concepts.md] - implements - Core agent domain concepts
+  - [foundation/reference_resources.md] - references - Official Mastra documentation
   - [cross_cutting/mastra_integration_guide.md] - uses - Mastra framework integration
   - [cross_cutting/openrouter_configuration_guide.md] - uses - OpenRouter model provider setup
 

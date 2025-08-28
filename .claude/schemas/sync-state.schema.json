@@ -1,0 +1,418 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://schemas.claude.ai/sync-state.schema.json",
+  "title": "Context Network Sync State",
+  "description": "Shared state between /sync and /groom commands to track task completion reality vs. planning",
+  "type": "object",
+  "properties": {
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "lastSyncRun": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO timestamp of last successful sync operation"
+        },
+        "syncVersion": {
+          "type": "string",
+          "description": "Version of sync command that generated this state",
+          "default": "1.0"
+        },
+        "projectRoot": {
+          "type": "string",
+          "description": "Project root path this sync state applies to"
+        },
+        "totalTasksScanned": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Total number of tasks examined in last sync"
+        }
+      },
+      "required": ["lastSyncRun", "syncVersion"]
+    },
+    "completedTasks": {
+      "type": "object",
+      "description": "Tasks confirmed completed by sync operation",
+      "patternProperties": {
+        "^[a-zA-Z0-9_-]+$": {
+          "type": "object",
+          "properties": {
+            "taskId": {
+              "type": "string",
+              "description": "Unique identifier for this task"
+            },
+            "title": {
+              "type": "string",
+              "description": "Human readable task title"
+            },
+            "status": {
+              "type": "string",
+              "enum": ["completed"],
+              "description": "Task completion status"
+            },
+            "confidence": {
+              "type": "string",
+              "enum": ["high", "medium", "low"],
+              "description": "Confidence level in completion assessment"
+            },
+            "evidence": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "List of evidence supporting completion (file paths, commits, etc.)"
+            },
+            "completionDate": {
+              "type": "string",
+              "format": "date-time",
+              "description": "Best estimate of when task was completed"
+            },
+            "syncedAt": {
+              "type": "string",
+              "format": "date-time",
+              "description": "When this completion was detected by sync"
+            },
+            "originalPlan": {
+              "type": "object",
+              "properties": {
+                "location": {
+                  "type": "string",
+                  "description": "File path where task was planned"
+                },
+                "plannedScope": {
+                  "type": "string",
+                  "description": "Original scope/description from planning"
+                }
+              },
+              "description": "Reference to original task planning"
+            },
+            "actualImplementation": {
+              "type": "object",
+              "properties": {
+                "files": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "Key files that implement this task"
+                },
+                "deviations": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "Ways implementation differs from original plan"
+                }
+              },
+              "description": "Details of actual implementation found"
+            },
+            "groomingAction": {
+              "type": "string",
+              "enum": ["archive", "document", "follow_up", "none"],
+              "description": "Recommended action for groom command"
+            },
+            "followUpTasks": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "New tasks spawned from this completion (documentation, testing, etc.)"
+            }
+          },
+          "required": ["taskId", "title", "status", "confidence", "evidence", "syncedAt", "groomingAction"]
+        }
+      }
+    },
+    "partialTasks": {
+      "type": "object",
+      "description": "Tasks that are partially implemented",
+      "patternProperties": {
+        "^[a-zA-Z0-9_-]+$": {
+          "type": "object",
+          "properties": {
+            "taskId": {
+              "type": "string"
+            },
+            "title": {
+              "type": "string"
+            },
+            "status": {
+              "type": "string",
+              "enum": ["partial"],
+              "description": "Partial completion status"
+            },
+            "confidence": {
+              "type": "string",
+              "enum": ["high", "medium", "low"]
+            },
+            "completedParts": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "List of completed sub-components"
+            },
+            "remainingParts": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "List of parts still needing implementation"
+            },
+            "blockers": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": ["dependency", "decision", "resource", "technical"]
+                  },
+                  "description": {
+                    "type": "string"
+                  }
+                },
+                "required": ["type", "description"]
+              },
+              "description": "Issues blocking completion"
+            },
+            "evidence": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "syncedAt": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "groomingAction": {
+              "type": "string",
+              "enum": ["update_scope", "split_task", "continue", "block"],
+              "description": "How groom should handle this partial task"
+            }
+          },
+          "required": ["taskId", "title", "status", "confidence", "completedParts", "remainingParts", "syncedAt", "groomingAction"]
+        }
+      }
+    },
+    "conflicts": {
+      "type": "object",
+      "description": "Tasks where sync findings conflict with planning documents",
+      "patternProperties": {
+        "^[a-zA-Z0-9_-]+$": {
+          "type": "object",
+          "properties": {
+            "taskId": {
+              "type": "string"
+            },
+            "title": {
+              "type": "string"
+            },
+            "conflictType": {
+              "type": "string",
+              "enum": ["plan_vs_reality", "duplicate_implementation", "scope_drift", "obsolete_plan"],
+              "description": "Type of conflict detected"
+            },
+            "plannedState": {
+              "type": "string",
+              "description": "What planning documents indicate"
+            },
+            "actualState": {
+              "type": "string", 
+              "description": "What sync detected in codebase"
+            },
+            "evidence": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "syncedAt": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "resolutionRequired": {
+              "type": "boolean",
+              "description": "Whether manual intervention is needed"
+            },
+            "groomingAction": {
+              "type": "string",
+              "enum": ["manual_review", "update_plan", "update_implementation", "escalate"],
+              "description": "How groom should handle this conflict"
+            },
+            "suggestedResolution": {
+              "type": "string",
+              "description": "Sync command's suggestion for resolving conflict"
+            }
+          },
+          "required": ["taskId", "title", "conflictType", "plannedState", "actualState", "syncedAt", "resolutionRequired", "groomingAction"]
+        }
+      }
+    },
+    "archivedTasks": {
+      "type": "object",
+      "description": "Tasks moved from active planning to archive by sync",
+      "patternProperties": {
+        "^[a-zA-Z0-9_-]+$": {
+          "type": "object",
+          "properties": {
+            "taskId": {
+              "type": "string"
+            },
+            "title": {
+              "type": "string"
+            },
+            "archivedFrom": {
+              "type": "string",
+              "description": "Original file/location where task was planned"
+            },
+            "archivedTo": {
+              "type": "string",
+              "description": "Archive location where task was moved"
+            },
+            "archiveReason": {
+              "type": "string",
+              "enum": ["completed", "obsolete", "duplicate", "superseded"],
+              "description": "Why task was archived"
+            },
+            "syncedAt": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          "required": ["taskId", "title", "archivedFrom", "archiveReason", "syncedAt"]
+        }
+      }
+    },
+    "taskSourceUpdates": {
+      "type": "object",
+      "description": "Record of updates made to task source files",
+      "properties": {
+        "filesModified": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "filepath": {
+                "type": "string",
+                "description": "Path to modified file"
+              },
+              "modificationType": {
+                "type": "string",
+                "enum": ["task_completed", "task_archived", "status_updated", "evidence_added"],
+                "description": "Type of modification made"
+              },
+              "taskIds": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Task IDs affected by this modification"
+              },
+              "modifiedAt": {
+                "type": "string",
+                "format": "date-time"
+              }
+            },
+            "required": ["filepath", "modificationType", "taskIds", "modifiedAt"]
+          }
+        },
+        "backupCreated": {
+          "type": "boolean",
+          "description": "Whether backup copies of modified files were created"
+        },
+        "backupLocation": {
+          "type": "string",
+          "description": "Directory where backups are stored"
+        }
+      }
+    },
+    "groomingHints": {
+      "type": "object",
+      "description": "Hints for groom command based on sync findings",
+      "properties": {
+        "skipTasks": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Task IDs that groom should skip (already complete)"
+        },
+        "prioritizeTasks": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Task IDs that should be prioritized (blockers resolved, etc.)"
+        },
+        "reviewTasks": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Task IDs needing manual review before grooming"
+        },
+        "newTaskSuggestions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "priority": {
+                "type": "string",
+                "enum": ["high", "medium", "low"]
+              },
+              "reason": {
+                "type": "string",
+                "description": "Why this new task is suggested"
+              }
+            },
+            "required": ["title", "description", "priority", "reason"]
+          },
+          "description": "New tasks discovered during sync that should be groomed"
+        }
+      }
+    },
+    "statistics": {
+      "type": "object",
+      "description": "Statistics from sync operation for reporting",
+      "properties": {
+        "tasksScanned": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "completionsFound": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "partialImplementations": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "conflictsDetected": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "tasksArchived": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "filesModified": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "syncDuration": {
+          "type": "number",
+          "description": "Sync operation duration in milliseconds"
+        }
+      }
+    }
+  },
+  "required": ["metadata", "completedTasks", "partialTasks", "conflicts", "groomingHints", "statistics"]
+}

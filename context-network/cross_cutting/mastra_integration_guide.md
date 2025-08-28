@@ -22,6 +22,16 @@ Mastra is built around modular, composable components that work together to crea
 3. **Type Safety**: Full TypeScript support with schema validation
 4. **Workflow Orchestration**: Step-based execution with branching and parallel processing
 
+#### Official Documentation Reference
+
+Comprehensive Mastra framework documentation is available locally at `/workspaces/mastra-context-network/reference/mastra-docs/`. Key resources include:
+- **Quick Start**: `00-quick-start/` - Installation, prerequisites, and minimal examples
+- **Core Concepts**: `01-core-concepts/` - Architecture overview, data flow, and mental models
+- **API Reference**: `02-api-reference/` - Detailed API documentation for all components
+- **Patterns**: `03-patterns/` - Common patterns and best practices
+
+For detailed documentation structure and usage guidelines, see [foundation/reference_resources.md].
+
 #### Key Components
 
 ```typescript
@@ -745,6 +755,7 @@ export const robustTool = createTool({
   - [cross_cutting/mastra_workflow_patterns.md] - specialized-guidance - Critical workflow data flow patterns
 - **Related Nodes:** 
   - [foundation/system_overview.md] - implements - System architecture with Mastra
+  - [foundation/reference_resources.md] - references - Official Mastra documentation
   - [cross_cutting/openrouter_configuration_guide.md] - complements - Model provider integration
   - [cross_cutting/typescript_configuration_guide.md] - uses - TypeScript setup for Mastra projects
 
