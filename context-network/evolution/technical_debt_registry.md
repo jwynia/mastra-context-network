@@ -35,6 +35,9 @@ This registry organizes technical debt items in multiple ways to help you find r
 | ID | Title | Type | Priority | Area | Suggested Timeframe |
 |----|-------|------|----------|------|---------------------|
 | TD_001 | Workflow Data Accumulation Assumption | Architecture Debt | High | Workflows | Next Sprint |
+| TD_002 | Kuzu Database Installation Disabled | Infrastructure Debt | Medium | DevContainer | Next Month |
+| TD_003 | Manual Git Configuration Required | Infrastructure Debt | Low | DevContainer | Future |
+| TD_004 | Multiple TypeScript Configuration Files | Code Debt | Low | Configuration | Future |
 
 ### Technical Debt by Priority
 
@@ -45,18 +48,23 @@ This registry organizes technical debt items in multiple ways to help you find r
 - **TD_001**: Workflow Data Accumulation Assumption - Developers often assume Mastra workflows accumulate data across steps like a snowball, when they actually operate on a relay race model
 
 #### Medium
-- *None yet*
+- **TD_002**: Kuzu Database Installation Disabled - Graph database unavailable due to upstream archive format changes
 
 #### Low
-- *None yet*
+- **TD_003**: Manual Git Configuration Required - Hardcoded git user configuration in devcontainer setup
+- **TD_004**: Multiple TypeScript Configuration Files - Separate configs for Deno and Node.js runtimes
 
 ### Technical Debt by Area
 
 #### Workflows
 - **TD_001**: Workflow Data Accumulation Assumption - Anti-pattern where developers expect automatic data accumulation between workflow steps
 
-#### Component 2
-- *None yet*
+#### DevContainer
+- **TD_002**: Kuzu Database Installation Disabled - Semantic analysis features unavailable
+- **TD_003**: Manual Git Configuration Required - User-specific configuration hardcoded
+
+#### Configuration
+- **TD_004**: Multiple TypeScript Configuration Files - Runtime separation requires multiple config maintenance
 
 ### Technical Debt by Type
 
@@ -73,7 +81,11 @@ This registry organizes technical debt items in multiple ways to help you find r
 - *None yet*
 
 #### Infrastructure Debt
-- *None yet*
+- **TD_002**: Kuzu Database Installation Disabled - Upstream package distribution changes broke installation
+- **TD_003**: Manual Git Configuration Required - Devcontainer setup not portable across developers
+
+#### Code Debt
+- **TD_004**: Multiple TypeScript Configuration Files - Dual runtime approach requires configuration duplication
 
 #### Process Debt
 - *None yet*
@@ -94,6 +106,8 @@ This registry organizes technical debt items in multiple ways to help you find r
 
 #### Developer Experience Impact
 - **TD_001**: Workflow Data Accumulation Assumption - Causes hours of debugging for what should be simple data passing issues, significantly impacting developer productivity
+- **TD_002**: Kuzu Database Installation Disabled - Semantic analysis features unavailable, reducing development capabilities
+- **TD_003**: Manual Git Configuration Required - New developers need manual configuration setup
 
 ### Recording New Technical Debt
 

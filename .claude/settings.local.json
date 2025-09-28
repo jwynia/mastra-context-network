@@ -1,7 +1,17 @@
 {
   "permissions": {
     "allow": [
-      "Bash(chmod:*)"
+      "Bash(chmod:*)",
+      "Bash(deno:*)",
+      "Bash(while read script)",
+      "Bash(do [ ! -f \"$script\" ])",
+      "Bash(echo:*)",
+      "Bash(done)",
+      "Bash(curl:*)",
+      "Read(//tmp/**)",
+      "Read(//usr/local/bin/**)",
+      "Bash(gunzip:*)",
+      "Bash(./duckdb --version)"
     ],
     "deny": [],
     "ask": []

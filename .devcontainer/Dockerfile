@@ -41,22 +41,27 @@ RUN curl -fsSL https://bun.sh/install | bash
 ENV BUN_INSTALL="/root/.bun"
 ENV PATH="$BUN_INSTALL/bin:$PATH"
 
-# Install Kuzu database binary
-# TODO: Fix Kuzu installation - archive structure changed
-# WORKDIR /tmp
-# RUN KUZU_VERSION=$(curl -s https://api.github.com/repos/kuzudb/kuzu/releases/latest | jq -r .tag_name) \
-#     && curl -L "https://github.com/kuzudb/kuzu/releases/download/${KUZU_VERSION}/kuzu_cli-linux-x86_64.tar.gz" -o kuzu.tar.gz \
-#     && tar -xzf kuzu.tar.gz \
-#     && mv kuzu /usr/local/bin/kuzu \
-#     && chmod +x /usr/local/bin/kuzu
-
-# Install DuckDB for SQL analysis
+# Install Kuzu database binary (architecture-aware)
 WORKDIR /tmp
-RUN curl -L https://github.com/duckdb/duckdb/releases/latest/download/duckdb_cli-linux-amd64.zip -o duckdb.zip \
-    && unzip duckdb.zip \
-    && mv duckdb /usr/local/bin/ \
+RUN ARCH=$(uname -m | sed 's/x86_64/x86_64/;s/aarch64/aarch64/') \
+    && KUZU_VERSION=$(curl -s https://api.github.com/repos/kuzudb/kuzu/releases/latest | jq -r .tag_name) \
+    && echo "Installing Kuzu ${KUZU_VERSION} for ${ARCH}" \
+    && curl -L "https://github.com/kuzudb/kuzu/releases/download/${KUZU_VERSION}/kuzu_cli-linux-${ARCH}.tar.gz" -o kuzu.tar.gz \
+    && tar -xzf kuzu.tar.gz \
+    && mv kuzu /usr/local/bin/kuzu \
+    && chmod +x /usr/local/bin/kuzu \
+    && rm kuzu.tar.gz \
+    && kuzu --version
+
+# Install DuckDB for SQL analysis (architecture-aware)
+WORKDIR /tmp
+RUN ARCH=$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/') \
+    && echo "Installing DuckDB for ${ARCH}" \
+    && curl -L "https://github.com/duckdb/duckdb/releases/latest/download/duckdb_cli-linux-${ARCH}.gz" -o duckdb.gz \
+    && gunzip duckdb.gz \
+    && mv duckdb /usr/local/bin/duckdb \
     && chmod +x /usr/local/bin/duckdb \
-    && rm duckdb.zip
+    && duckdb --version
 
 # Install Node.js global tools for application development
 RUN npm install -g \

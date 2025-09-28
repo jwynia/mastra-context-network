@@ -2,3 +2,39 @@
 node_modules
 .DS_Store
 dist
+
+# Databases
+.kuzu/
+.duckdb/
+
+# Caches
+.cache/
+.agent/
+
+# Worktrees
+.worktrees/
+
+# Deno
+deno.lock
+
+# IDE
+.vscode/
+.idea/
+
+# Build outputs
+*.log
+*.pid
+*.seed
+*.pid.lock
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# TypeScript
+*.tsbuildinfo
+
+# OS files
+Thumbs.db
+*.swp
+*.swo

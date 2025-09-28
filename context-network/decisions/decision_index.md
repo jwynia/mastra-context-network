@@ -45,7 +45,8 @@ This index organizes ADRs in multiple ways to help you find relevant decisions:
 - *None yet*
 
 #### Accepted
-- *None yet*
+- **ADR-001**: [DevContainer Architecture and Tooling Strategy](./adr_001_devcontainer_architecture.md) - Multi-runtime development environment setup
+- **ADR-001**: [Workflow Data Passing Strategy](./adr_001_workflow_data_passing_strategy.md) - Mastra workflow data handling approach
 
 #### Deprecated
 - *None yet*
@@ -62,7 +63,7 @@ This index organizes ADRs in multiple ways to help you find relevant decisions:
 - *None yet*
 
 #### Technology
-- *None yet*
+- **ADR-001**: [DevContainer Architecture and Tooling Strategy](./adr_001_devcontainer_architecture.md) - Development environment technology choices
 
 #### Process
 - *None yet*
@@ -76,7 +77,8 @@ This index organizes ADRs in multiple ways to help you find relevant decisions:
 ### ADRs by Chronology
 
 #### 2025
-- *None yet*
+- **2025-09-28**: [ADR-001: DevContainer Architecture and Tooling Strategy](./adr_001_devcontainer_architecture.md)
+- **2025-08-06**: [ADR-001: Workflow Data Passing Strategy](./adr_001_workflow_data_passing_strategy.md)
 
 ### ADRs by Component
 

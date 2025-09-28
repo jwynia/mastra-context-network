@@ -1,38 +1,37 @@
 {
   "tasks": {
     "// Core Analysis": "",
-    "analyze": "deno run -A scripts/analyze.ts",
-    "analyze:types": "deno run -A scripts/analyze-types.ts",
-    "analyze:deps": "deno run -A scripts/analyze-deps.ts",
-    "analyze:metrics": "deno run -A scripts/analyze-metrics.ts",
-    
+    "analyze": "echo 'Not yet implemented: scripts/commands/analyze.ts'",
+    "analyze:types": "echo 'Not yet implemented: scripts/commands/analyze-types.ts'",
+    "analyze:deps": "echo 'Not yet implemented: scripts/commands/analyze-deps.ts'",
+    "analyze:metrics": "echo 'Not yet implemented: scripts/commands/analyze-metrics.ts'",
+
     "// Database Management": "",
     "db:init": "deno run -A scripts/init-databases.ts",
-    "db:scan": "deno run -A scripts/scan-codebase.ts",
-    "db:query": "deno run -A scripts/query.ts",
+    "scan": "deno run -A scripts/commands/scan.ts",
+    "query": "deno run -A scripts/commands/query.ts",
     
     "// Monitoring": "",
-    "watch": "deno run -A --watch scripts/watch.ts",
-    "watch:background": "deno run -A scripts/watch.ts --daemon",
-    "watch:types": "deno run -A --watch scripts/watch-types.ts",
-    
+    "watch": "echo 'Not yet implemented: scripts/watch.ts'",
+    "watch:background": "echo 'Not yet implemented: scripts/watch.ts --daemon'",
+
     "// Code Generation": "",
-    "gen:tests": "deno run -A scripts/generate-tests.ts",
-    "gen:docs": "deno run -A scripts/generate-docs.ts",
-    "gen:types": "deno run -A scripts/generate-types.ts",
-    
+    "gen:tests": "echo 'Not yet implemented: scripts/commands/generate-tests.ts'",
+    "gen:docs": "echo 'Not yet implemented: scripts/commands/generate-docs.ts'",
+    "gen:types": "echo 'Not yet implemented: scripts/commands/generate-types.ts'",
+
     "// Migrations": "",
-    "migrate": "deno run -A scripts/migrate.ts",
-    "codemod": "deno run -A scripts/codemod.ts",
-    
+    "migrate": "echo 'Not yet implemented: scripts/commands/migrate.ts'",
+    "codemod": "echo 'Not yet implemented: scripts/commands/codemod.ts'",
+
     "// Utilities": "",
-    "clean": "deno run -A scripts/clean.ts",
+    "clean": "echo 'Not yet implemented: scripts/utils/clean.ts'",
     "init": "deno run -A scripts/init.ts",
     "doctor": "deno run -A scripts/doctor.ts",
-    
+
     "// Benchmarking": "",
     "bench:all": "deno bench bench/",
-    "bench:compare": "deno run -A scripts/benchmark-compare.ts"
+    "bench:compare": "echo 'Not yet implemented: scripts/benchmark-compare.ts'"
   },
   
   "imports": {

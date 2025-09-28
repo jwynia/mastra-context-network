@@ -35,7 +35,7 @@ const steps: InitStep[] = [
     name: "Initialize Kuzu database",
     check: async () => await exists(".kuzu/semantic.db"),
     action: async () => {
-      // Check if kuzu command is available
+      // Check if kuzu command is available - REQUIRED
       try {
         const checkCmd = new Deno.Command("kuzu", {
           args: ["--version"],
@@ -44,9 +44,7 @@ const steps: InitStep[] = [
         });
         await checkCmd.output();
       } catch {
-        console.log("⚠️  Kuzu not installed - skipping database initialization");
-        console.log("   Install Kuzu CLI to enable semantic analysis features");
-        return;
+        throw new Error("Kuzu is REQUIRED but not installed. Please install Kuzu CLI for semantic analysis.")
       }
 
       const initScript = `
@@ -100,7 +98,7 @@ const steps: InitStep[] = [
         throw new Error(`Kuzu init failed: ${new TextDecoder().decode(stderr)}`);
       }
     },
-    required: false,
+    required: true,
   },
   {
     name: "Initialize DuckDB database",
@@ -309,8 +307,9 @@ async function main() {
     console.log(green("✅ Environment initialized successfully!"));
     console.log("\nNext steps:");
     console.log("  1. Run", bold("npm install"), "to install Node dependencies");
-    console.log("  2. Run", bold("deno task db:scan"), "to analyze your codebase");
-    console.log("  3. Run", bold("deno task watch"), "to start the file watcher");
+    console.log("  2. Run", bold("deno task db:init"), "to initialize databases (if needed)");
+    console.log("  3. Run", bold("deno task scan"), "to analyze your codebase");
+    console.log("  4. Run", bold("deno task watch"), "to start the file watcher");
   }
 }
 

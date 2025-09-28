@@ -1,0 +1,280 @@
+-- Core Symbol table: Functions, Classes, Interfaces, Types
+CREATE NODE TABLE Symbol (
+  id STRING PRIMARY KEY,
+  name STRING,
+  kind STRING,
+  file_path STRING,
+  line INT32,
+  column INT32,
+  is_exported BOOLEAN,
+  is_async BOOLEAN,
+  visibility STRING,
+  jsdoc STRING,
+  git_sha STRING,
+  last_modified TIMESTAMP
+) WITH (ID_PREFIX = 'symbol_');
+-- Type information
+CREATE NODE TABLE Type (
+  id STRING PRIMARY KEY,
+  name STRING,
+  kind STRING,
+  definition STRING,
+  is_generic BOOLEAN,
+  type_params STRING[],
+  file_path STRING,
+  line INT32
+) WITH (ID_PREFIX = 'type_');
+-- Import statements
+CREATE NODE TABLE Import (
+  id STRING PRIMARY KEY,
+  source_file STRING,
+  imported_path STRING,
+  specifiers STRING[],
+  is_type_only BOOLEAN,
+  is_default BOOLEAN,
+  is_namespace BOOLEAN,
+  git_sha STRING
+) WITH (ID_PREFIX = 'import_');
+-- Test definitions
+CREATE NODE TABLE Test (
+  id STRING PRIMARY KEY,
+  name STRING,
+  test_file STRING,
+  tests_symbol STRING,
+  test_type STRING,
+  line INT32,
+  is_async BOOLEAN,
+  tags STRING[]
+) WITH (ID_PREFIX = 'test_');
+-- File nodes for file-level metadata
+CREATE NODE TABLE File (
+  id STRING PRIMARY KEY,
+  path STRING,
+  relative_path STRING,
+  extension STRING,
+  size INT64,
+  lines INT32,
+  hash STRING,
+  last_modified TIMESTAMP
+) WITH (ID_PREFIX = 'file_');
+-- Relationships between nodes
+CREATE REL TABLE EXTENDS (FROM Symbol TO Type);
+CREATE REL TABLE IMPLEMENTS (FROM Symbol TO Type);
+CREATE REL TABLE RETURNS (FROM Symbol TO Type);
+CREATE REL TABLE HAS_PARAMETER (FROM Symbol TO Type, position INT32, name STRING, is_optional BOOLEAN);
+CREATE REL TABLE CALLS (FROM Symbol TO Symbol, count INT32, is_recursive BOOLEAN);
+CREATE REL TABLE DEPENDS_ON (FROM Symbol TO Import);
+CREATE REL TABLE TESTS (FROM Test TO Symbol);
+CREATE REL TABLE DEFINED_IN (FROM Symbol TO File);
+CREATE REL TABLE IMPORTS_FROM (FROM File TO File, import_count INT32);
+CREATE REL TABLE REFERENCES (FROM Symbol TO Symbol, reference_count INT32);
+CREATE REL TABLE MEMBER_OF (FROM Symbol TO Symbol, is_static BOOLEAN);
+.quit
+;
+CALL show_tables();
+.quit
+;
+-- Core Symbol table: Functions, Classes, Interfaces, Types
+CREATE NODE TABLE Symbol (
+  id STRING PRIMARY KEY,
+  name STRING,
+  kind STRING,
+  file_path STRING,
+  line INT32,
+  column INT32,
+  is_exported BOOLEAN,
+  is_async BOOLEAN,
+  visibility STRING,
+  jsdoc STRING,
+  git_sha STRING,
+  last_modified TIMESTAMP
+) WITH (ID_PREFIX = 'symbol_');
+-- Type information
+CREATE NODE TABLE Type (
+  id STRING PRIMARY KEY,
+  name STRING,
+  kind STRING,
+  definition STRING,
+  is_generic BOOLEAN,
+  type_params STRING[],
+  file_path STRING,
+  line INT32
+) WITH (ID_PREFIX = 'type_');
+-- Import statements
+CREATE NODE TABLE Import (
+  id STRING PRIMARY KEY,
+  source_file STRING,
+  imported_path STRING,
+  specifiers STRING[],
+  is_type_only BOOLEAN,
+  is_default BOOLEAN,
+  is_namespace BOOLEAN,
+  git_sha STRING
+) WITH (ID_PREFIX = 'import_');
+-- Test definitions
+CREATE NODE TABLE Test (
+  id STRING PRIMARY KEY,
+  name STRING,
+  test_file STRING,
+  tests_symbol STRING,
+  test_type STRING,
+  line INT32,
+  is_async BOOLEAN,
+  tags STRING[]
+) WITH (ID_PREFIX = 'test_');
+-- File nodes for file-level metadata
+CREATE NODE TABLE File (
+  id STRING PRIMARY KEY,
+  path STRING,
+  relative_path STRING,
+  extension STRING,
+  size INT64,
+  lines INT32,
+  hash STRING,
+  last_modified TIMESTAMP
+) WITH (ID_PREFIX = 'file_');
+-- Relationships between nodes
+CREATE REL TABLE EXTENDS (FROM Symbol TO Type);
+CREATE REL TABLE IMPLEMENTS (FROM Symbol TO Type);
+CREATE REL TABLE RETURNS (FROM Symbol TO Type);
+CREATE REL TABLE HAS_PARAMETER (FROM Symbol TO Type, position INT32, name STRING, is_optional BOOLEAN);
+CREATE REL TABLE CALLS (FROM Symbol TO Symbol, count INT32, is_recursive BOOLEAN);
+CREATE REL TABLE DEPENDS_ON (FROM Symbol TO Import);
+CREATE REL TABLE TESTS (FROM Test TO Symbol);
+CREATE REL TABLE DEFINED_IN (FROM Symbol TO File);
+CREATE REL TABLE IMPORTS_FROM (FROM File TO File, import_count INT32);
+CREATE REL TABLE REFERENCES (FROM Symbol TO Symbol, reference_count INT32);
+CREATE REL TABLE MEMBER_OF (FROM Symbol TO Symbol, is_static BOOLEAN);
+.quit
+;
+CALL show_tables();
+.quit
+;
+INSERT INTO Symbol VALUES ('symbol_mg3veu6ay03kfdvhu', 'commandExists', 'function', '/workspaces/mastra-context-network/scripts/doctor.ts', 18, 450, false, true, 'public', '', '', CURRENT_TIMESTAMP);
+INSERT INTO Symbol VALUES ('symbol_mg3veufojfdwek7i4', 'main', 'function', '/workspaces/mastra-context-network/scripts/doctor.ts', 231, 5575, false, true, 'public', '', '', CURRENT_TIMESTAMP);
+INSERT INTO Symbol VALUES ('symbol_mg3veufogg10soa8y', 'getCategoryEmoji', 'function', '/workspaces/mastra-context-network/scripts/doctor.ts', 292, 7390, false, false, 'public', '', '', CURRENT_TIMESTAMP);
+INSERT INTO Symbol VALUES ('symbol_mg3veufo66utipoc6', 'getCategoryName', 'function', '/workspaces/mastra-context-network/scripts/doctor.ts', 302, 7628, false, false, 'public', '', '', CURRENT_TIMESTAMP);
+INSERT INTO Symbol VALUES ('symbol_mg3veufo3fu19g89m', 'Check', 'interface', '/workspaces/mastra-context-network/scripts/doctor.ts', 11, 264, false, false, 'public', '', '', CURRENT_TIMESTAMP);
+INSERT INTO Symbol VALUES ('symbol_mg3veufprmbcltz8s', 'checks', 'variable', '/workspaces/mastra-context-network/scripts/doctor.ts', 39, 924, false, false, 'public', '', '', CURRENT_TIMESTAMP);
+INSERT INTO Symbol VALUES ('symbol_mg3veufril98mb9fr', 'main', 'function', '/workspaces/mastra-context-network/scripts/init.ts', 274, 7421, false, true, 'public', '', '', CURRENT_TIMESTAMP);
+INSERT INTO Symbol VALUES ('symbol_mg3veufr5hcl11evw', 'InitStep', 'interface', '/workspaces/mastra-context-network/scripts/init.ts', 11, 292, false, false, 'public', '', '', CURRENT_TIMESTAMP);
+INSERT INTO Symbol VALUES ('symbol_mg3veufrd4166lm5e', 'steps', 'variable', '/workspaces/mastra-context-network/scripts/init.ts', 18, 417, false, false, 'public', '', '', CURRENT_TIMESTAMP);
+INSERT INTO Symbol VALUES ('symbol_mg3veufrrit198moi', 'initializeKuzu', 'function', '/workspaces/mastra-context-network/scripts/init-databases.ts', 24, 635, false, true, 'public', 'Initialize Kuzu semantic graph database
+Stores AST nodes, symbols, types, and their relationships', '', CURRENT_TIMESTAMP);
+INSERT INTO Symbol VALUES ('symbol_mg3veufstczc19p8u', 'initializeDuckDB', 'function', '/workspaces/mastra-context-network/scripts/init-databases.ts', 166, 4492, false, true, 'public', 'Initialize DuckDB analytics database
+Stores code metrics, performance data, and statistical analysis', '', CURRENT_TIMESTAMP);
+INSERT INTO Symbol VALUES ('symbol_mg3veufs8i37utrpr', 'verifyDatabases', 'function', '/workspaces/mastra-context-network/scripts/init-databases.ts', 316, 8671, false, true, 'public', 'Verify databases are accessible and have correct schemas', '', CURRENT_TIMESTAMP);
+INSERT INTO Symbol VALUES ('symbol_mg3veufsk19vzgd19', 'main', 'function', '/workspaces/mastra-context-network/scripts/init-databases.ts', 367, 10049, false, true, 'public', '', '', CURRENT_TIMESTAMP);
+INSERT INTO Symbol VALUES ('symbol_mg3veufsb5dbhpbwf', 'DatabaseInitResult', 'interface', '/workspaces/mastra-context-network/scripts/init-databases.ts', 14, 430, false, false, 'public', '', '', CURRENT_TIMESTAMP);
+INSERT INTO Symbol VALUES ('symbol_mg3veufs8xb9vd508', 'KUZU_DB_PATH', 'variable', '/workspaces/mastra-context-network/scripts/init-databases.ts', 11, 282, false, false, 'public', '', '', CURRENT_TIMESTAMP);
+INSERT INTO Symbol VALUES ('symbol_mg3veufsdc0kaeq08', 'DUCKDB_PATH', 'variable', '/workspaces/mastra-context-network/scripts/init-databases.ts', 12, 356, false, false, 'public', '', '', CURRENT_TIMESTAMP);
+INSERT INTO Symbol VALUES ('symbol_mg3veuftcm5pvkj6h', 'checkTypeCoverage', 'function', '/workspaces/mastra-context-network/scripts/code-metrics.ts', 6, 158, false, true, 'public', '', '', CURRENT_TIMESTAMP);
+INSERT INTO Symbol VALUES ('symbol_mg3veufuzaupdnvvp', 'checkTypeCoverage', 'function', '/workspaces/mastra-context-network/scripts/watch-types.ts', 6, 158, false, true, 'public', '', '', CURRENT_TIMESTAMP);
+INSERT INTO Symbol VALUES ('symbol_mg3veufu44exitvi7', 'executeKuzuQuery', 'function', '/workspaces/mastra-context-network/scripts/kuzu-query.ts', 18, 416, false, true, 'public', '', '', CURRENT_TIMESTAMP);
+INSERT INTO Symbol VALUES ('symbol_mg3veufumw5awhtnb', 'parseKuzuOutput', 'function', '/workspaces/mastra-context-network/scripts/kuzu-query.ts', 57, 1427, false, false, 'public', '', '', CURRENT_TIMESTAMP);
+INSERT INTO Symbol VALUES ('symbol_mg3veufutk54dexni', 'parseValue', 'function', '/workspaces/mastra-context-network/scripts/kuzu-query.ts', 93, 2286, false, false, 'public', '', '', CURRENT_TIMESTAMP);
+INSERT INTO Symbol VALUES ('symbol_mg3veufuhzojqvvnl', 'QueryOptions', 'interface', '/workspaces/mastra-context-network/scripts/kuzu-query.ts', 11, 294, false, false, 'public', '', '', CURRENT_TIMESTAMP);
+INSERT INTO Symbol VALUES ('symbol_mg3veufupdli91qci', 'QUERY_TEMPLATES', 'variable', '/workspaces/mastra-context-network/scripts/kuzu-query.ts', 108, 2709, false, false, 'public', '', '', CURRENT_TIMESTAMP);
+INSERT INTO Symbol VALUES ('symbol_mg3veufvzbamk0yzl', 'main', 'function', '/workspaces/mastra-context-network/scripts/scan-codebase.ts', 541, 15994, false, true, 'public', '', '', CURRENT_TIMESTAMP);
+INSERT INTO Symbol VALUES ('symbol_mg3veufvhgvlxmuxy', 'ASTScanner', 'class', '/workspaces/mastra-context-network/scripts/scan-codebase.ts', 67, 1469, false, false, 'public', '', '', CURRENT_TIMESTAMP);
+INSERT INTO Symbol VALUES ('symbol_mg3veufvaczvs4k01', 'scan', 'method', '/workspaces/mastra-context-network/scripts/scan-codebase.ts', 100, 2531, false, true, 'public', '', '', CURRENT_TIMESTAMP);
+INSERT INTO Symbol VALUES ('symbol_mg3veufvyouetoer8', 'findSourceFiles', 'method', '/workspaces/mastra-context-network/scripts/scan-codebase.ts', 130, 3478, false, true, 'private', '', '', CURRENT_TIMESTAMP);
+INSERT INTO Symbol VALUES ('symbol_mg3veufvzeofhk0y0', 'processFile', 'method', '/workspaces/mastra-context-network/scripts/scan-codebase.ts', 164, 4427, false, true, 'private', '', '', CURRENT_TIMESTAMP);
+INSERT INTO Symbol VALUES ('symbol_mg3veufv7salk5hv5', 'extractImports', 'method', '/workspaces/mastra-context-network/scripts/scan-codebase.ts', 184, 4960, false, false, 'private', '', '', CURRENT_TIMESTAMP);
+INSERT INTO Symbol VALUES ('symbol_mg3veufvuiq6nol7r', 'extractSymbols', 'method', '/workspaces/mastra-context-network/scripts/scan-codebase.ts', 210, 5888, false, false, 'private', '', '', CURRENT_TIMESTAMP);
+INSERT INTO Symbol VALUES ('symbol_mg3veufvvzoj97m6h', 'extractTypes', 'method', '/workspaces/mastra-context-network/scripts/scan-codebase.ts', 257, 7300, false, false, 'private', '', '', CURRENT_TIMESTAMP);
+INSERT INTO Symbol VALUES ('symbol_mg3veufvyiyb8040b', 'extractRelationships', 'method', '/workspaces/mastra-context-network/scripts/scan-codebase.ts', 293, 8417, false, false, 'private', '', '', CURRENT_TIMESTAMP);
+INSERT INTO Symbol VALUES ('symbol_mg3veufvbxvasxz75', 'addSymbol', 'method', '/workspaces/mastra-context-network/scripts/scan-codebase.ts', 320, 9307, false, false, 'private', '', '', CURRENT_TIMESTAMP);
+INSERT INTO Symbol VALUES ('symbol_mg3veufvlgogw5cin', 'addRelationship', 'method', '/workspaces/mastra-context-network/scripts/scan-codebase.ts', 344, 9944, false, false, 'private', '', '', CURRENT_TIMESTAMP);
+INSERT INTO Symbol VALUES ('symbol_mg3veufvggyaoi3hy', 'getNodeName', 'method', '/workspaces/mastra-context-network/scripts/scan-codebase.ts', 348, 10118, false, false, 'private', '', '', CURRENT_TIMESTAMP);
+INSERT INTO Symbol VALUES ('symbol_mg3veufvd0uwok63v', 'isNodeExported', 'method', '/workspaces/mastra-context-network/scripts/scan-codebase.ts', 363, 10627, false, false, 'private', '', '', CURRENT_TIMESTAMP);
+INSERT INTO Symbol VALUES ('symbol_mg3veufvvpqeuztxn', 'isNodeAsync', 'method', '/workspaces/mastra-context-network/scripts/scan-codebase.ts', 371, 10877, false, false, 'private', '', '', CURRENT_TIMESTAMP);
+INSERT INTO Symbol VALUES ('symbol_mg3veufvqqilqnuga', 'getNodeVisibility', 'method', '/workspaces/mastra-context-network/scripts/scan-codebase.ts', 378, 11058, false, false, 'private', '', '', CURRENT_TIMESTAMP);
+INSERT INTO Symbol VALUES ('symbol_mg3veufvse0zi1apb', 'getNodeJSDoc', 'method', '/workspaces/mastra-context-network/scripts/scan-codebase.ts', 386, 11368, false, false, 'private', '', '', CURRENT_TIMESTAMP);
+INSERT INTO Symbol VALUES ('symbol_mg3veufvafhgn8yhc', 'generateId', 'method', '/workspaces/mastra-context-network/scripts/scan-codebase.ts', 397, 11744, false, false, 'private', '', '', CURRENT_TIMESTAMP);
+INSERT INTO Symbol VALUES ('symbol_mg3veufve75nyc7p3', 'storeInKuzu', 'method', '/workspaces/mastra-context-network/scripts/scan-codebase.ts', 401, 11860, false, true, 'private', '', '', CURRENT_TIMESTAMP);
+INSERT INTO Symbol VALUES ('symbol_mg3veufvkr7acry9a', 'executeBulkKuzu', 'method', '/workspaces/mastra-context-network/scripts/scan-codebase.ts', 449, 13281, false, true, 'private', '', '', CURRENT_TIMESTAMP);
+INSERT INTO Symbol VALUES ('symbol_mg3veufv2gdect8b9', 'storeMetricsInDuckDB', 'method', '/workspaces/mastra-context-network/scripts/scan-codebase.ts', 476, 14071, false, true, 'private', '', '', CURRENT_TIMESTAMP);
+INSERT INTO Symbol VALUES ('symbol_mg3veufw5z85j8eoy', 'project', 'property', '/workspaces/mastra-context-network/scripts/scan-codebase.ts', 68, 1488, false, false, 'private', '', '', CURRENT_TIMESTAMP);
+INSERT INTO Symbol VALUES ('symbol_mg3veufwuv5h6ervm', 'symbols', 'property', '/workspaces/mastra-context-network/scripts/scan-codebase.ts', 69, 1516, false, false, 'private', '', '', CURRENT_TIMESTAMP);
+INSERT INTO Symbol VALUES ('symbol_mg3veufwsgmudtngn', 'types', 'property', '/workspaces/mastra-context-network/scripts/scan-codebase.ts', 70, 1577, false, false, 'private', '', '', CURRENT_TIMESTAMP);
+INSERT INTO Symbol VALUES ('symbol_mg3veufw7upuoqunk', 'imports', 'property', '/workspaces/mastra-context-network/scripts/scan-codebase.ts', 71, 1634, false, false, 'private', '', '', CURRENT_TIMESTAMP);
+INSERT INTO Symbol VALUES ('symbol_mg3veufwewip5tb75', 'relationships', 'property', '/workspaces/mastra-context-network/scripts/scan-codebase.ts', 72, 1695, false, false, 'private', '', '', CURRENT_TIMESTAMP);
+INSERT INTO Symbol VALUES ('symbol_mg3veufwgyzapu3lx', 'fileHashes', 'property', '/workspaces/mastra-context-network/scripts/scan-codebase.ts', 73, 1741, false, false, 'private', '', '', CURRENT_TIMESTAMP);
+INSERT INTO Symbol VALUES ('symbol_mg3veufwte8dectpa', 'ScanOptions', 'interface', '/workspaces/mastra-context-network/scripts/scan-codebase.ts', 17, 629, false, false, 'public', '', '', CURRENT_TIMESTAMP);
+INSERT INTO Symbol VALUES ('symbol_mg3veufw6dvwqgt82', 'ExtractedSymbol', 'interface', '/workspaces/mastra-context-network/scripts/scan-codebase.ts', 26, 781, false, false, 'public', '', '', CURRENT_TIMESTAMP);
+INSERT INTO Symbol VALUES ('symbol_mg3veufw4lmk9uxbi', 'ExtractedType', 'interface', '/workspaces/mastra-context-network/scripts/scan-codebase.ts', 39, 994, false, false, 'public', '', '', CURRENT_TIMESTAMP);
+INSERT INTO Symbol VALUES ('symbol_mg3veufw2ijiyxqs8', 'ExtractedImport', 'interface', '/workspaces/mastra-context-network/scripts/scan-codebase.ts', 50, 1173, false, false, 'public', '', '', CURRENT_TIMESTAMP);
+INSERT INTO Symbol VALUES ('symbol_mg3veufwd5z6b6xb8', 'Relationship', 'interface', '/workspaces/mastra-context-network/scripts/scan-codebase.ts', 60, 1357, false, false, 'public', '', '', CURRENT_TIMESTAMP);
+INSERT INTO Symbol VALUES ('symbol_mg3veufwg6etrzimr', 'KUZU_DB_PATH', 'variable', '/workspaces/mastra-context-network/scripts/scan-codebase.ts', 14, 481, false, false, 'public', '', '', CURRENT_TIMESTAMP);
+INSERT INTO Symbol VALUES ('symbol_mg3veufw72jtwn6q8', 'DUCKDB_PATH', 'variable', '/workspaces/mastra-context-network/scripts/scan-codebase.ts', 15, 555, false, false, 'public', '', '', CURRENT_TIMESTAMP);
+INSERT INTO Type VALUES ('type_mg3veufpot3kybwk7', 'Check', 'interface', 'interface Check {
+  name: string;
+  category: "runtime" | "tool" | "database" | "config";
+  check: () => Promise<{ ok: boolean; message?: string; version?: string }>;
+  fix?: string;
+}', false, [''], '/workspaces/mastra-context-network/scripts/doctor.ts', 11);
+INSERT INTO Type VALUES ('type_mg3veufrp637evnn4', 'InitStep', 'interface', 'interface InitStep {
+  name: string;
+  check: () => Promise<boolean>;
+  action: () => Promise<void>;
+  required: boolean;
+}', false, [''], '/workspaces/mastra-context-network/scripts/init.ts', 11);
+INSERT INTO Type VALUES ('type_mg3veufsqiqlqpkfo', 'DatabaseInitResult', 'interface', 'interface DatabaseInitResult {
+  success: boolean;
+  database: string;
+  message: string;
+}', false, [''], '/workspaces/mastra-context-network/scripts/init-databases.ts', 14);
+INSERT INTO Type VALUES ('type_mg3veufunrofuhxy2', 'QueryOptions', 'interface', 'interface QueryOptions {
+  query: string;
+  format?: "json" | "csv" | "table";
+  database?: string;
+  output?: string;
+}', false, [''], '/workspaces/mastra-context-network/scripts/kuzu-query.ts', 11);
+INSERT INTO Type VALUES ('type_mg3veufwedzv0093h', 'ScanOptions', 'interface', 'interface ScanOptions {
+  path: string;
+  incremental: boolean;
+  verbose: boolean;
+  include?: string[];
+  exclude?: string[];
+  maxDepth?: number;
+}', false, [''], '/workspaces/mastra-context-network/scripts/scan-codebase.ts', 17);
+INSERT INTO Type VALUES ('type_mg3veufw5xhxkp1k9', 'ExtractedSymbol', 'interface', 'interface ExtractedSymbol {
+  id: string;
+  name: string;
+  kind: string;
+  filePath: string;
+  line: number;
+  column: number;
+  isExported: boolean;
+  isAsync: boolean;
+  visibility: string;
+  jsdoc: string;
+}', false, [''], '/workspaces/mastra-context-network/scripts/scan-codebase.ts', 26);
+INSERT INTO Type VALUES ('type_mg3veufwqa6jgbgiw', 'ExtractedType', 'interface', 'interface ExtractedType {
+  id: string;
+  name: string;
+  kind: string;
+  definition: string;
+  isGeneric: boolean;
+  typeParams: string[];
+  filePath: string;
+  line: number;
+}', false, [''], '/workspaces/mastra-context-network/scripts/scan-codebase.ts', 39);
+INSERT INTO Type VALUES ('type_mg3veufw59dkcxr4m', 'ExtractedImport', 'interface', 'interface ExtractedImport {
+  id: string;
+  sourceFile: string;
+  importedPath: string;
+  specifiers: string[];
+  isTypeOnly: boolean;
+  isDefault: boolean;
+  isNamespace: boolean;
+}', false, [''], '/workspaces/mastra-context-network/scripts/scan-codebase.ts', 50);
+INSERT INTO Type VALUES ('type_mg3veufwmnranz1ut', 'Relationship', 'interface', 'interface Relationship {
+  from: string;
+  to: string;
+  type: string;
+  metadata?: Record<string, unknown>;
+}', false, [''], '/workspaces/mastra-context-network/scripts/scan-codebase.ts', 60);
+.quit
+;
