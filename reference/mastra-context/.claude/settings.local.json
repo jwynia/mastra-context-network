@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__research__lightResearchReport",
+      "mcp__research__mediumResearchReport",
+      "mcp__research__deepResearchReport",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(find:*)",
+      "Bash(mv:*)",
+      "mcp__research__basicWebSearch",
+      "mcp__deepwiki__ask_question",
+      "mcp__context7__resolve-library-id",
+      "mcp__context7__get-library-docs",
+      "mcp__research__captureUrlContent",
+      "Bash(rm:*)",
+      "Bash(mkdir:*)",
+      "Bash(deno check:*)",
+      "WebFetch(domain:mastra.ai)",
+      "Bash(deno doc:*)",
+      "WebFetch(domain:registry.npmjs.org)",
+      "Bash(deno info:*)",
+      "Bash(cat:*)",
+      "Bash(deno test:*)"
+    ],
+    "deny": []
+  }
+}

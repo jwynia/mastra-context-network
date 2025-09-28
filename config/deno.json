@@ -1,0 +1,86 @@
+{
+  "tasks": {
+    "// Core Analysis": "",
+    "analyze": "deno run -A scripts/analyze.ts",
+    "analyze:types": "deno run -A scripts/analyze-types.ts",
+    "analyze:deps": "deno run -A scripts/analyze-deps.ts",
+    "analyze:metrics": "deno run -A scripts/analyze-metrics.ts",
+    
+    "// Database Management": "",
+    "db:init": "deno run -A scripts/init-databases.ts",
+    "db:scan": "deno run -A scripts/scan-codebase.ts",
+    "db:query": "deno run -A scripts/query.ts",
+    
+    "// Monitoring": "",
+    "watch": "deno run -A --watch scripts/watch.ts",
+    "watch:background": "deno run -A scripts/watch.ts --daemon",
+    "watch:types": "deno run -A --watch scripts/watch-types.ts",
+    
+    "// Code Generation": "",
+    "gen:tests": "deno run -A scripts/generate-tests.ts",
+    "gen:docs": "deno run -A scripts/generate-docs.ts",
+    "gen:types": "deno run -A scripts/generate-types.ts",
+    
+    "// Migrations": "",
+    "migrate": "deno run -A scripts/migrate.ts",
+    "codemod": "deno run -A scripts/codemod.ts",
+    
+    "// Utilities": "",
+    "clean": "deno run -A scripts/clean.ts",
+    "init": "deno run -A scripts/init.ts",
+    "doctor": "deno run -A scripts/doctor.ts",
+    
+    "// Benchmarking": "",
+    "bench:all": "deno bench bench/",
+    "bench:compare": "deno run -A scripts/benchmark-compare.ts"
+  },
+  
+  "imports": {
+    "@std/fmt": "jsr:@std/fmt@^0.224.0",
+    "@std/fs": "jsr:@std/fs@^0.224.0",
+    "@std/flags": "jsr:@std/flags@^0.224.0",
+    "@oak/": "https://deno.land/x/oak@v12.6.2/",
+    "@cliffy/": "https://deno.land/x/cliffy@v1.0.0-rc.3/",
+    "zod": "https://deno.land/x/zod@v3.22.4/mod.ts",
+    "kysely": "npm:kysely@^0.27.0",
+    "chalk": "npm:chalk@^5.3.0"
+  },
+  
+  "lint": {
+    "include": ["scripts/", "bench/"],
+    "exclude": ["scripts/vendor/"],
+    "rules": {
+      "tags": ["recommended"],
+      "exclude": ["no-explicit-any", "require-await"]
+    }
+  },
+  
+  "fmt": {
+    "include": ["scripts/", "bench/"],
+    "exclude": ["scripts/vendor/"],
+    "lineWidth": 100,
+    "indentWidth": 2,
+    "semiColons": true,
+    "singleQuote": false,
+    "proseWrap": "preserve"
+  },
+  
+  "test": {
+    "include": ["scripts/**/*.test.ts"],
+    "exclude": ["scripts/vendor/"]
+  },
+  
+  "bench": {
+    "include": ["bench/**/*.bench.ts"]
+  },
+  
+  "lock": true,
+  "nodeModulesDir": "none",
+  
+  "compilerOptions": {
+    "lib": ["deno.window", "deno.unstable"],
+    "strict": true,
+    "allowJs": false,
+    "checkJs": false
+  }
+}

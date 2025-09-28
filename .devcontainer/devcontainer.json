@@ -1,32 +1,118 @@
-// For format details, see https://aka.ms/devcontainer.json. For config options, see the
-// README at: https://github.com/devcontainers/templates/tree/main/src/typescript-node
 {
-  "name": "Node.js & TypeScript",
-  // Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
-  "image": "mcr.microsoft.com/devcontainers/typescript-node:1-22-bookworm",
-  "runArgs": ["--env-file", ".devcontainer/.env"],
+  "name": "TypeScript Deno+Node Agent Environment",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": ".",
+    "args": {
+      "VARIANT": "22-bookworm"
+    }
+  },
+  "runArgs": [
+    "--env-file", 
+    ".devcontainer/.env",
+    "--cap-add=SYS_PTRACE",
+    "--security-opt",
+    "seccomp=unconfined"
+  ],
   "features": {
     "ghcr.io/devcontainers-community/features/deno:1": {},
-    "ghcr.io/anthropics/devcontainer-features/claude-code:1.0": {}
+    "ghcr.io/anthropics/devcontainer-features/claude-code:1.0": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
   },
   "customizations": {
     "vscode": {
-      "extensions": ["saoudrizwan.claude-dev", "Anthropic.claude-code"]
+      "extensions": [
+        "saoudrizwan.claude-dev",
+        "Anthropic.claude-code",
+        "denoland.vscode-deno",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "usernamehw.errorlens",
+        "streetsidesoftware.code-spell-checker",
+        "visualstudioexptteam.vscodeintellicode",
+        "christian-kohler.path-intellisense",
+        "pflannery.vscode-versionlens",
+        "wix.vscode-import-cost",
+        "orta.vscode-jest",
+        "vitest.explorer"
+      ],
+      "settings": {
+        "// Runtime separation": "Deno for scripts/, Node for src/",
+        "deno.enable": false,
+        "deno.enablePaths": ["./scripts", "./bench"],
+        "deno.disablePaths": ["./src", "./tests"],
+        "deno.config": "./deno.json",
+        
+        "typescript.tsdk": "node_modules/typescript/lib",
+        "typescript.enablePromptUseWorkspaceTsdk": true,
+        
+        "[typescript]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode"
+        },
+        "[javascript]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode"
+        },
+        
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+          "source.organizeImports": "explicit"
+        },
+        
+        "files.associations": {
+          "scripts/*.ts": "typescript",
+          "bench/*.ts": "typescript"
+        },
+        
+        "files.exclude": {
+          "**/.kuzu": true,
+          "**/.duckdb": true,
+          "**/.cache": true,
+          "**/node_modules": true,
+          "**/dist": true
+        },
+        
+        "search.exclude": {
+          "**/.agent": true,
+          "**/deno.lock": true,
+          "**/package-lock.json": true
+        },
+        
+        "terminal.integrated.env.linux": {
+          "KUZU_DB_PATH": "/workspace/.kuzu/semantic.db",
+          "DUCKDB_PATH": "/workspace/.duckdb/metrics.db",
+          "DENO_DIR": "/workspace/.cache/deno"
+        },
+        
+        "task.autoDetect": "on",
+        "npm.autoDetect": "on"
+      }
     }
   },
-
-  // Features to add to the dev container. More info: https://containers.dev/features.
-  // "features": {},
-
-  // Use 'forwardPorts' to make a list of ports inside the container available locally.
-  // "forwardPorts": [],
-
-  // Use 'postCreateCommand' to run commands after the container is created.
-  "postCreateCommand": "sudo npm i -g @anthropic-ai/claude-code"
-
-  // Configure tool-specific properties.
-  // "customizations": {},
-
-  // Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
-  // "remoteUser": "root"
+  "mounts": [
+    {
+      "type": "volume",
+      "source": "kuzu-db-volume",
+      "target": "/workspace/.kuzu-db"
+    }
+  ],
+  "postCreateCommand": "git config --global user.email 'j@wynia.org' && git config --global user.name 'J Wynia' && mkdir -p .cache/deno && chmod -R 755 .cache && cp config/deno.json . && deno cache scripts/*.ts && deno task init && npm install && echo '🦕 Deno tooling + 🟢 Node runtime ready!'",
+  // TODO: Re-enable after watch task is implemented
+  // "postStartCommand": "deno task watch:background",
+  "forwardPorts": [3000, 5173, 8080],
+  "portsAttributes": {
+    "3000": {
+      "label": "Application",
+      "onAutoForward": "notify"
+    },
+    "5173": {
+      "label": "Vite Dev Server",
+      "onAutoForward": "notify"
+    },
+    "8080": {
+      "label": "API/Debug Server",
+      "onAutoForward": "notify"
+    }
+  },
+  "remoteUser": "node"
 }

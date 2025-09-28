@@ -1,0 +1,13 @@
+#!/bin/bash
+# TODO: Update semantic database after commits
+# This hook will be implemented to:
+# 1. Run incremental scan of modified files
+# 2. Update Kuzu database with new AST data
+# 3. Refresh metrics in DuckDB
+
+# Placeholder implementation
+echo "post-commit hook placeholder - semantic DB updates disabled"
+
+# Future implementation:
+# cd "$(git rev-parse --show-toplevel)"
+# deno task scan --incremental --quiet
