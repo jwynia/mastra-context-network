@@ -28,8 +28,48 @@ We're about to close this session and lose anything not captured that we might n
 ### Discovery Triggers Met?
 Review `/discoveries/triggers.md` - did any of these happen without documentation?
 - [ ] Spent >5 minutes figuring out how something works
-- [ ] Read >3 files to understand one feature  
+- [ ] Read >3 files to understand one feature
 - [ ] Found "I know I saw this somewhere" moments
 - [ ] Discovered why something was designed a certain way
+
+---
+
+## Next Session Starter Prompt
+
+Once all checklist items are complete, prepare this prompt for the next session:
+
+```
+I'm continuing work on [PROJECT_NAME].
+
+Please read the latest task completion record:
+context-network/tasks/YYYY-MM-DD-[task-name].md
+
+Then review:
+- The backlog: context-network/planning/[backlog-file].md
+- Current architecture: context-network/architecture/[relevant-doc].md
+
+I'd like to [NEXT_PHASE_DESCRIPTION].
+```
+
+**Example:**
+```
+I'm continuing the TypeScript Agent development.
+
+Please read the latest task completion record:
+context-network/tasks/2025-09-30-inbox-processing-cli-router.md
+
+Then review:
+- The backlog: context-network/planning/typescript-agent-backlog.md
+- Current architecture: context-network/architecture/tooling_architecture.md
+
+I'd like to implement Phase 2 (Core Utilities) from the backlog.
+```
+
+**Tips for next session:**
+- Point to specific task record (most important context)
+- Reference backlog for "what's next"
+- Reference architecture docs for "how it works"
+- State clear intent for the session
+- Keep it under 4 sentences
 
 $ARGUMENTS

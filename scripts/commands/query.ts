@@ -128,6 +128,53 @@ const QUERY_TEMPLATES = {
     `MATCH path = (s:Symbol {name: '${typeName}'})-[:EXTENDS|IMPLEMENTS*]->(parent) RETURN path`
 };
 
+// Cliffy Command export for CLI router
+import { Command } from "https://deno.land/x/cliffy@v1.0.0-rc.4/command/mod.ts";
+
+export const queryCommand = new Command()
+  .description("Query the semantic graph database using natural language or Cypher")
+  .arguments("[query:string]")
+  .option("-q, --query <query:string>", "Cypher query to execute")
+  .option("-t, --template <template:string>", "Use a predefined query template")
+  .option("-f, --format <format:string>", "Output format: json, csv, table", { default: "table" })
+  .option("-d, --database <path:string>", "Database path (defaults to KUZU_DB_PATH env)")
+  .option("-o, --output <file:string>", "Write output to file")
+  .example("Direct query", 'ts-agent query "MATCH (n:Symbol) RETURN n LIMIT 10"')
+  .example("Use template", 'ts-agent query -t find-interface User')
+  .example("JSON output", 'ts-agent query -q "MATCH (n) RETURN n" -f json')
+  .example("List templates", "ts-agent query --help")
+  .action(async (options, ...args) => {
+    let query: string;
+
+    if (options.template) {
+      const template = QUERY_TEMPLATES[options.template as keyof typeof QUERY_TEMPLATES];
+
+      if (!template) {
+        console.error(`Unknown template: ${options.template}`);
+        console.log("Available templates:", Object.keys(QUERY_TEMPLATES).join(", "));
+        Deno.exit(1);
+      }
+
+      query = typeof template === "function"
+        ? (template as any)(...args)
+        : template;
+    } else {
+      query = options.query || args[0]?.toString();
+
+      if (!query) {
+        console.error("No query provided. Use --query or provide as argument.");
+        Deno.exit(1);
+      }
+    }
+
+    await executeKuzuQuery({
+      query,
+      format: options.format as any,
+      database: options.database,
+      output: options.output
+    });
+  });
+
 if (import.meta.main) {
   const flags = parse(Deno.args, {
     string: ["query", "q", "template", "t", "format", "f", "database", "d", "output", "o"],
@@ -142,19 +189,19 @@ if (import.meta.main) {
     const templateName = flags.template || flags.t;
     const templateArgs = flags._.map(String);
     const template = QUERY_TEMPLATES[templateName as keyof typeof QUERY_TEMPLATES];
-    
+
     if (!template) {
       console.error(`Unknown template: ${templateName}`);
       console.log("Available templates:", Object.keys(QUERY_TEMPLATES).join(", "));
       Deno.exit(1);
     }
-    
-    query = typeof template === "function" 
+
+    query = typeof template === "function"
       ? (template as any)(...templateArgs)
       : template;
   } else {
     query = flags.query || flags.q || flags._[0]?.toString();
-    
+
     if (!query) {
       console.error("No query provided. Use --query or -q flag.");
       Deno.exit(1);

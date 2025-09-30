@@ -399,6 +399,39 @@ Examples:
   }
 }
 
+// Cliffy Command export for CLI router
+import { Command } from "https://deno.land/x/cliffy@v1.0.0-rc.4/command/mod.ts";
+
+export const scanCommand = new Command()
+  .description("Scan codebase and extract semantic structure into databases")
+  .option("-p, --path <path:string>", "Path to scan", { default: "." })
+  .option("-i, --incremental", "Only scan changed files")
+  .option("-c, --clear", "Clear existing data before scanning")
+  .option("--include <patterns:string>", "Include file patterns (comma-separated)")
+  .option("--exclude <patterns:string>", "Exclude file patterns (comma-separated)")
+  .example("Scan current directory", "ts-agent scan")
+  .example("Scan with verbose output", "ts-agent scan -v")
+  .example("Incremental scan", "ts-agent scan --incremental")
+  .example("Scan specific path", "ts-agent scan --path ./src")
+  .action(async (options) => {
+    const scanOptions: ScanOptions = {
+      path: options.path,
+      incremental: options.incremental || false,
+      verbose: options.verbose || false,
+      clear: options.clear || false,
+      include: options.include ? options.include.split(",") : undefined,
+      exclude: options.exclude ? options.exclude.split(",") : undefined,
+    };
+
+    try {
+      const scanner = new CodebaseScanner(scanOptions);
+      await scanner.scan();
+    } catch (error) {
+      logger.error(`Scan failed: ${error}`);
+      Deno.exit(1);
+    }
+  });
+
 // Run if executed directly
 if (import.meta.main) {
   main();

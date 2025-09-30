@@ -47,6 +47,9 @@ This index organizes ADRs in multiple ways to help you find relevant decisions:
 #### Accepted
 - **ADR-001**: [DevContainer Architecture and Tooling Strategy](./adr_001_devcontainer_architecture.md) - Multi-runtime development environment setup
 - **ADR-001**: [Workflow Data Passing Strategy](./adr_001_workflow_data_passing_strategy.md) - Mastra workflow data handling approach
+- **ADR-002**: [Deno for Tooling, Node for Runtime Split](./adr_002_deno_node_runtime_split.md) - Dual runtime architecture with clear boundaries
+- **ADR-003**: [No Python Policy](./adr_003_no_python_policy.md) - TypeScript-only development environment
+- **ADR-004**: [Kuzu and DuckDB for Semantic Analysis](./adr_004_kuzu_duckdb_databases.md) - Dual database architecture for code analysis
 
 #### Deprecated
 - *None yet*
@@ -60,10 +63,12 @@ This index organizes ADRs in multiple ways to help you find relevant decisions:
 - *None yet*
 
 #### Architecture
-- *None yet*
+- **ADR-002**: [Deno for Tooling, Node for Runtime Split](./adr_002_deno_node_runtime_split.md) - System runtime architecture
+- **ADR-004**: [Kuzu and DuckDB for Semantic Analysis](./adr_004_kuzu_duckdb_databases.md) - Data storage architecture
 
 #### Technology
 - **ADR-001**: [DevContainer Architecture and Tooling Strategy](./adr_001_devcontainer_architecture.md) - Development environment technology choices
+- **ADR-003**: [No Python Policy](./adr_003_no_python_policy.md) - Technology constraints and boundaries
 
 #### Process
 - *None yet*
@@ -77,6 +82,9 @@ This index organizes ADRs in multiple ways to help you find relevant decisions:
 ### ADRs by Chronology
 
 #### 2025
+- **2025-09-30**: [ADR-004: Kuzu and DuckDB for Semantic Analysis](./adr_004_kuzu_duckdb_databases.md)
+- **2025-09-30**: [ADR-003: No Python Policy](./adr_003_no_python_policy.md)
+- **2025-09-30**: [ADR-002: Deno for Tooling, Node for Runtime Split](./adr_002_deno_node_runtime_split.md)
 - **2025-09-28**: [ADR-001: DevContainer Architecture and Tooling Strategy](./adr_001_devcontainer_architecture.md)
 - **2025-08-06**: [ADR-001: Workflow Data Passing Strategy](./adr_001_workflow_data_passing_strategy.md)
 
