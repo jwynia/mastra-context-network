@@ -35,9 +35,12 @@ This registry organizes technical debt items in multiple ways to help you find r
 | ID | Title | Type | Priority | Area | Suggested Timeframe |
 |----|-------|------|----------|------|---------------------|
 | TD_001 | Workflow Data Accumulation Assumption | Architecture Debt | High | Workflows | Next Sprint |
-| TD_002 | Kuzu Database Installation Disabled | Infrastructure Debt | Medium | DevContainer | Next Month |
+| TD_002 | ~~Kuzu Database Installation Disabled~~ | ~~Infrastructure Debt~~ | ~~Medium~~ | ~~DevContainer~~ | **RESOLVED 2025-01-30** |
 | TD_003 | Manual Git Configuration Required | Infrastructure Debt | Low | DevContainer | Future |
 | TD_004 | Multiple TypeScript Configuration Files | Code Debt | Low | Configuration | Future |
+| TD_005 | Kuzu Query Execution via Temp Files | Infrastructure Debt | Medium | Database | Next Month |
+| TD_006 | Import Node Table Missing | Architecture Debt | Low | Database Schema | Future |
+| TD_007 | Incomplete CALLS Relationship Detection | Code Debt | Medium | AST Analysis | Next Sprint |
 
 ### Technical Debt by Priority
 
@@ -48,11 +51,13 @@ This registry organizes technical debt items in multiple ways to help you find r
 - **TD_001**: Workflow Data Accumulation Assumption - Developers often assume Mastra workflows accumulate data across steps like a snowball, when they actually operate on a relay race model
 
 #### Medium
-- **TD_002**: Kuzu Database Installation Disabled - Graph database unavailable due to upstream archive format changes
+- **TD_005**: Kuzu Query Execution via Temp Files - Performance overhead from writing queries to temp files
+- **TD_007**: Incomplete CALLS Relationship Detection - Only detecting simple function calls in AST
 
 #### Low
 - **TD_003**: Manual Git Configuration Required - Hardcoded git user configuration in devcontainer setup
 - **TD_004**: Multiple TypeScript Configuration Files - Separate configs for Deno and Node.js runtimes
+- **TD_006**: Import Node Table Missing - Cannot store module imports in graph database
 
 ### Technical Debt by Area
 
@@ -133,7 +138,7 @@ This section tracks debt items that have been fully addressed, serving as a reco
 
 | ID | Title | Type | Resolved Date | Resolution Summary |
 |----|-------|------|--------------|-------------------|
-| *None yet* |
+| TD_002 | Kuzu Database Installation Disabled | Infrastructure Debt | 2025-01-30 | Fixed Kuzu installation, path handling, and query execution. See task 2025-01-30-library-extraction.md |
 
 ## Relationships
 - **Parent Nodes:** None

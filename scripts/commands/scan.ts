@@ -1,18 +1,20 @@
 #!/usr/bin/env -S deno run --allow-all
 
 /**
- * Core AST Scanner - Extracts TypeScript/JavaScript code structure into Kuzu
+ * Core AST Scanner - Extracts TypeScript/JavaScript code structure into databases
  * This is the heart of the semantic analysis system
  */
 
-import { Project, Node, Type, Symbol, SourceFile, SyntaxKind } from "npm:ts-morph@22.0.0";
 import { walk } from "@std/fs";
-import { relative, join } from "https://deno.land/std@0.224.0/path/mod.ts";
-import { green, yellow, red, bold, dim } from "@std/fmt/colors";
+import { relative } from "https://deno.land/std@0.224.0/path/mod.ts";
 import { parse } from "@std/flags";
+import { createHash } from "https://deno.land/std@0.224.0/crypto/mod.ts";
 
-const KUZU_DB_PATH = Deno.env.get("KUZU_DB_PATH") || ".kuzu/semantic.db";
-const DUCKDB_PATH = Deno.env.get("DUCKDB_PATH") || ".duckdb/metrics.db";
+import { ASTAnalyzer } from "../lib/ast-analyzer.ts";
+import { kuzuClient } from "../lib/kuzu-client.ts";
+import { duckdbClient, type FileMetrics } from "../lib/duckdb-client.ts";
+import { logger } from "../utils/logger.ts";
+import { config } from "../utils/config.ts";
 
 interface ScanOptions {
   path: string;
@@ -21,578 +23,383 @@ interface ScanOptions {
   include?: string[];
   exclude?: string[];
   maxDepth?: number;
+  clear?: boolean;
 }
 
-interface ExtractedSymbol {
-  id: string;
-  name: string;
-  kind: string;
-  filePath: string;
-  line: number;
-  column: number;
-  isExported: boolean;
-  isAsync: boolean;
-  visibility: string;
-  jsdoc: string;
-}
+class CodebaseScanner {
+  private analyzer: ASTAnalyzer;
+  private options: ScanOptions;
+  private fileCount = 0;
+  private symbolCount = 0;
+  private typeCount = 0;
+  private importCount = 0;
+  private relationshipCount = 0;
 
-interface ExtractedType {
-  id: string;
-  name: string;
-  kind: string;
-  definition: string;
-  isGeneric: boolean;
-  typeParams: string[];
-  filePath: string;
-  line: number;
-}
-
-interface ExtractedImport {
-  id: string;
-  sourceFile: string;
-  importedPath: string;
-  specifiers: string[];
-  isTypeOnly: boolean;
-  isDefault: boolean;
-  isNamespace: boolean;
-}
-
-interface Relationship {
-  from: string;
-  to: string;
-  type: string;
-  metadata?: Record<string, unknown>;
-}
-
-class ASTScanner {
-  private project: Project;
-  private symbols: Map<string, ExtractedSymbol> = new Map();
-  private types: Map<string, ExtractedType> = new Map();
-  private imports: Map<string, ExtractedImport> = new Map();
-  private relationships: Relationship[] = [];
-  private fileHashes: Map<string, string> = new Map();
-
-  constructor(private options: ScanOptions) {
-    // Check if tsconfig.json exists in the target path
-    const tsconfigPath = join(options.path, "tsconfig.json");
-    let tsconfigExists = false;
-
-    try {
-      tsconfigExists = Deno.statSync(tsconfigPath).isFile;
-    } catch {
-      // tsconfig.json doesn't exist, will use default compiler options
-    }
-
-    this.project = new Project({
-      tsConfigFilePath: tsconfigExists ? tsconfigPath : undefined,
-      compilerOptions: !tsconfigExists ? {
+  constructor(options: ScanOptions) {
+    this.options = options;
+    this.analyzer = new ASTAnalyzer({
+      defaultCompilerOptions: {
         target: 22, // ES2022
         module: 199, // NodeNext
         lib: ["es2022"],
         allowJs: true,
         checkJs: false,
         strict: true,
-      } : undefined,
-      skipAddingFilesFromTsConfig: true,
+      }
     });
   }
 
   async scan(): Promise<void> {
-    console.log(bold("\n🔍 Scanning codebase for TypeScript/JavaScript files..."));
+    logger.section("Scanning Codebase");
 
-    // Add source files
-    const files = await this.findSourceFiles();
-    console.log(`Found ${green(files.length.toString())} files to analyze`);
+    // Initialize databases
+    await this.initializeDatabases();
 
-    // Process each file
-    let processed = 0;
+    // Clear existing data if requested
+    if (this.options.clear) {
+      await this.clearData();
+    }
+
+    // Collect files to scan
+    const files = await this.collectFiles();
+
+    if (files.length === 0) {
+      logger.warn("No TypeScript/JavaScript files found to scan");
+      return;
+    }
+
+    logger.info(`Found ${files.length} files to scan`);
+
+    // Process files
     for (const file of files) {
       await this.processFile(file);
-      processed++;
-      if (processed % 10 === 0) {
-        console.log(dim(`  Processed ${processed}/${files.length} files...`));
+    }
+
+    // Report results
+    await this.reportResults();
+  }
+
+  private async initializeDatabases(): Promise<void> {
+    logger.subsection("Initializing Databases");
+
+    try {
+      await kuzuClient.initialize();
+      logger.success("Kuzu database connected");
+    } catch (error) {
+      logger.error(`Failed to connect to Kuzu: ${error}`);
+      throw error;
+    }
+
+    try {
+      await duckdbClient.initialize();
+      logger.success("DuckDB database connected");
+    } catch (error) {
+      logger.error(`Failed to connect to DuckDB: ${error}`);
+      throw error;
+    }
+  }
+
+  private async clearData(): Promise<void> {
+    logger.subsection("Clearing Existing Data");
+
+    await kuzuClient.clearAll();
+    await duckdbClient.clearTable("file_metrics");
+
+    logger.success("Cleared all existing data");
+  }
+
+  private async collectFiles(): Promise<string[]> {
+    const files: string[] = [];
+    const startPath = this.options.path || ".";
+
+    const includePatterns = this.options.include || ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"];
+    const excludePatterns = this.options.exclude || [
+      "**/node_modules/**",
+      "**/.git/**",
+      "**/dist/**",
+      "**/build/**",
+      "**/*.test.ts",
+      "**/*.spec.ts",
+      "**/*.d.ts"
+    ];
+
+    for await (const entry of walk(startPath)) {
+      if (entry.isFile) {
+        const relPath = relative(startPath, entry.path);
+
+        // Check if file matches include patterns
+        const shouldInclude = includePatterns.some(pattern =>
+          this.matchPattern(relPath, pattern)
+        );
+
+        // Check if file matches exclude patterns
+        const shouldExclude = excludePatterns.some(pattern =>
+          this.matchPattern(relPath, pattern)
+        );
+
+        if (shouldInclude && !shouldExclude) {
+          files.push(entry.path);
+        }
       }
     }
 
-    console.log(green(`✓ Analyzed ${processed} files`));
-    console.log(`  Symbols: ${this.symbols.size}`);
-    console.log(`  Types: ${this.types.size}`);
-    console.log(`  Imports: ${this.imports.size}`);
-    console.log(`  Relationships: ${this.relationships.length}`);
-
-    // Store in Kuzu
-    await this.storeInKuzu();
-
-    // Calculate metrics and store in DuckDB
-    await this.storeMetricsInDuckDB();
+    return files;
   }
 
-  private async findSourceFiles(): Promise<SourceFile[]> {
-    const sourceFiles: SourceFile[] = [];
-    const extensions = [".ts", ".tsx", ".js", ".jsx"];
-
-    for await (const entry of walk(this.options.path, {
-      maxDepth: this.options.maxDepth || 10,
-      includeDirs: false,
-      exts: extensions,
-      skip: [
-        /node_modules/,
-        /\.git/,
-        /dist/,
-        /build/,
-        /coverage/,
-        /\.cache/,
-      ],
-    })) {
-      const relativePath = relative(this.options.path, entry.path);
-
-      // Check include/exclude patterns
-      if (this.options.exclude?.some(pattern => relativePath.includes(pattern))) {
-        continue;
-      }
-      if (this.options.include && !this.options.include.some(pattern => relativePath.includes(pattern))) {
-        continue;
-      }
-
-      const sourceFile = this.project.addSourceFileAtPath(entry.path);
-      sourceFiles.push(sourceFile);
-    }
-
-    return sourceFiles;
+  private matchPattern(path: string, pattern: string): boolean {
+    // Simple glob pattern matching
+    const regex = pattern
+      .replace(/\*\*/g, ".*")
+      .replace(/\*/g, "[^/]*")
+      .replace(/\?/g, ".");
+    return new RegExp(`^${regex}$`).test(path);
   }
 
-  private async processFile(sourceFile: SourceFile): Promise<void> {
-    const filePath = sourceFile.getFilePath();
+  private async processFile(filePath: string): Promise<void> {
+    this.fileCount++;
 
     if (this.options.verbose) {
-      console.log(`  Processing: ${dim(relative(this.options.path, filePath))}`);
+      logger.progress(`Processing ${filePath}`);
     }
 
-    // Extract imports
-    this.extractImports(sourceFile);
-
-    // Extract symbols (functions, classes, interfaces, etc.)
-    this.extractSymbols(sourceFile);
-
-    // Extract types
-    this.extractTypes(sourceFile);
-
-    // Extract relationships
-    this.extractRelationships(sourceFile);
-  }
-
-  private extractImports(sourceFile: SourceFile): void {
-    sourceFile.getImportDeclarations().forEach(importDecl => {
-      const id = `import_${this.generateId()}`;
-      const moduleSpecifier = importDecl.getModuleSpecifierValue();
-      const namedImports = importDecl.getNamedImports().map(n => n.getName());
-      const defaultImport = importDecl.getDefaultImport()?.getText();
-      const namespaceImport = importDecl.getNamespaceImport()?.getText();
-
-      const specifiers = [
-        ...(defaultImport ? [defaultImport] : []),
-        ...(namespaceImport ? [`* as ${namespaceImport}`] : []),
-        ...namedImports,
-      ];
-
-      this.imports.set(id, {
-        id,
-        sourceFile: sourceFile.getFilePath(),
-        importedPath: moduleSpecifier,
-        specifiers,
-        isTypeOnly: importDecl.isTypeOnly(),
-        isDefault: !!defaultImport,
-        isNamespace: !!namespaceImport,
-      });
-    });
-  }
-
-  private extractSymbols(sourceFile: SourceFile): void {
-    // Functions
-    sourceFile.getFunctions().forEach(func => {
-      this.addSymbol(func, "function", sourceFile);
-    });
-
-    // Classes
-    sourceFile.getClasses().forEach(cls => {
-      this.addSymbol(cls, "class", sourceFile);
-
-      // Class methods
-      cls.getMethods().forEach(method => {
-        this.addSymbol(method, "method", sourceFile);
-        this.addRelationship(method.getName(), cls.getName(), "MEMBER_OF");
-      });
-
-      // Class properties
-      cls.getProperties().forEach(prop => {
-        this.addSymbol(prop, "property", sourceFile);
-        this.addRelationship(prop.getName(), cls.getName(), "MEMBER_OF");
-      });
-    });
-
-    // Interfaces
-    sourceFile.getInterfaces().forEach(iface => {
-      this.addSymbol(iface, "interface", sourceFile);
-    });
-
-    // Type aliases
-    sourceFile.getTypeAliases().forEach(typeAlias => {
-      this.addSymbol(typeAlias, "type", sourceFile);
-    });
-
-    // Enums
-    sourceFile.getEnums().forEach(enumDecl => {
-      this.addSymbol(enumDecl, "enum", sourceFile);
-    });
-
-    // Variables and constants
-    sourceFile.getVariableStatements().forEach(varStatement => {
-      varStatement.getDeclarations().forEach(varDecl => {
-        const kind = varStatement.isExported() ? "exported-var" : "variable";
-        this.addSymbol(varDecl, kind, sourceFile);
-      });
-    });
-  }
-
-  private extractTypes(sourceFile: SourceFile): void {
-    // Extract type information from interfaces
-    sourceFile.getInterfaces().forEach(iface => {
-      const id = `type_${this.generateId()}`;
-      const typeParams = iface.getTypeParameters().map(p => p.getName());
-
-      this.types.set(id, {
-        id,
-        name: iface.getName(),
-        kind: "interface",
-        definition: iface.getText(),
-        isGeneric: typeParams.length > 0,
-        typeParams,
-        filePath: sourceFile.getFilePath(),
-        line: iface.getStartLineNumber(),
-      });
-    });
-
-    // Extract type aliases
-    sourceFile.getTypeAliases().forEach(typeAlias => {
-      const id = `type_${this.generateId()}`;
-      const typeParams = typeAlias.getTypeParameters().map(p => p.getName());
-
-      this.types.set(id, {
-        id,
-        name: typeAlias.getName(),
-        kind: "alias",
-        definition: typeAlias.getTypeNode()?.getText() || "",
-        isGeneric: typeParams.length > 0,
-        typeParams,
-        filePath: sourceFile.getFilePath(),
-        line: typeAlias.getStartLineNumber(),
-      });
-    });
-  }
-
-  private extractRelationships(sourceFile: SourceFile): void {
-    // Extract class inheritance
-    sourceFile.getClasses().forEach(cls => {
-      const extendsExpr = cls.getExtends();
-      if (extendsExpr) {
-        this.addRelationship(cls.getName(), extendsExpr.getText(), "EXTENDS");
-      }
-
-      // Implements relationships
-      cls.getImplements().forEach(impl => {
-        this.addRelationship(cls.getName(), impl.getText(), "IMPLEMENTS");
-      });
-    });
-
-    // Extract function calls (simplified - you'd want more sophisticated analysis)
-    sourceFile.getFunctions().forEach(func => {
-      func.forEachDescendant(node => {
-        if (Node.isCallExpression(node)) {
-          const expr = node.getExpression();
-          if (Node.isIdentifier(expr)) {
-            this.addRelationship(func.getName(), expr.getText(), "CALLS");
+    try {
+      // Check if file needs scanning (incremental mode)
+      if (this.options.incremental) {
+        const needsScan = await this.checkIfFileNeedsScanning(filePath);
+        if (!needsScan) {
+          if (this.options.verbose) {
+            logger.debug(`Skipping unchanged file: ${filePath}`);
           }
+          return;
         }
-      });
-    });
-  }
-
-  private addSymbol(node: Node, kind: string, sourceFile: SourceFile): void {
-    const name = this.getNodeName(node);
-    if (!name) return;
-
-    const id = `symbol_${this.generateId()}`;
-    const isExported = this.isNodeExported(node);
-    const isAsync = this.isNodeAsync(node);
-    const visibility = this.getNodeVisibility(node);
-    const jsdoc = this.getNodeJSDoc(node);
-
-    this.symbols.set(id, {
-      id,
-      name,
-      kind,
-      filePath: sourceFile.getFilePath(),
-      line: node.getStartLineNumber(),
-      column: node.getStartLinePos(),
-      isExported,
-      isAsync,
-      visibility,
-      jsdoc,
-    });
-  }
-
-  private addRelationship(from: string, to: string, type: string, metadata?: Record<string, unknown>): void {
-    this.relationships.push({ from, to, type, metadata });
-  }
-
-  private getNodeName(node: Node): string | undefined {
-    if (Node.isFunctionDeclaration(node) || Node.isClassDeclaration(node) ||
-        Node.isInterfaceDeclaration(node) || Node.isTypeAliasDeclaration(node) ||
-        Node.isEnumDeclaration(node)) {
-      return node.getName();
-    }
-    if (Node.isMethodDeclaration(node) || Node.isPropertyDeclaration(node)) {
-      return node.getName();
-    }
-    if (Node.isVariableDeclaration(node)) {
-      return node.getName();
-    }
-    return undefined;
-  }
-
-  private isNodeExported(node: Node): boolean {
-    // Check if the node has an isExported method
-    if ('isExported' in node && typeof (node as any).isExported === 'function') {
-      return (node as any).isExported();
-    }
-    return false;
-  }
-
-  private isNodeAsync(node: Node): boolean {
-    if (Node.isFunctionDeclaration(node) || Node.isMethodDeclaration(node)) {
-      return node.isAsync();
-    }
-    return false;
-  }
-
-  private getNodeVisibility(node: Node): string {
-    if (Node.isMethodDeclaration(node) || Node.isPropertyDeclaration(node)) {
-      if (node.hasModifier(SyntaxKind.PrivateKeyword)) return "private";
-      if (node.hasModifier(SyntaxKind.ProtectedKeyword)) return "protected";
-    }
-    return "public";
-  }
-
-  private getNodeJSDoc(node: Node): string {
-    // Check if the node has getJsDocs method
-    if ('getJsDocs' in node && typeof (node as any).getJsDocs === 'function') {
-      const jsDocs = (node as any).getJsDocs();
-      if (jsDocs && jsDocs.length > 0) {
-        return jsDocs[0].getDescription ? jsDocs[0].getDescription().trim() : "";
       }
-    }
-    return "";
-  }
 
-  private generateId(): string {
-    return Date.now().toString(36) + Math.random().toString(36).substr(2, 9);
-  }
+      // Add file to analyzer
+      const sourceFiles = this.analyzer.addSourceFiles([filePath]);
 
-  private async storeInKuzu(): Promise<void> {
-    console.log(bold("\n💾 Storing AST data in Kuzu..."));
-
-    // Prepare bulk insert commands
-    const insertCommands: string[] = [];
-
-    // Insert symbols
-    this.symbols.forEach(symbol => {
-      const values = [
-        `'${symbol.id}'`,
-        `'${symbol.name.replace(/'/g, "''")}'`,
-        `'${symbol.kind}'`,
-        `'${symbol.filePath.replace(/'/g, "''")}'`,
-        symbol.line,
-        symbol.column,
-        symbol.isExported,
-        symbol.isAsync,
-        `'${symbol.visibility}'`,
-        `'${symbol.jsdoc.replace(/'/g, "''")}'`,
-        `''`, // git_sha
-        `CURRENT_TIMESTAMP`,
-      ].join(", ");
-
-      insertCommands.push(`INSERT INTO Symbol VALUES (${values});`);
-    });
-
-    // Insert types
-    this.types.forEach(type => {
-      const values = [
-        `'${type.id}'`,
-        `'${type.name.replace(/'/g, "''")}'`,
-        `'${type.kind}'`,
-        `'${type.definition.substring(0, 500).replace(/'/g, "''")}'`,
-        type.isGeneric,
-        `['${type.typeParams.join("', '")}']`,
-        `'${type.filePath.replace(/'/g, "''")}'`,
-        type.line,
-      ].join(", ");
-
-      insertCommands.push(`INSERT INTO Type VALUES (${values});`);
-    });
-
-    // Execute inserts in batches
-    await this.executeBulkKuzu(insertCommands);
-
-    console.log(green(`✓ Stored ${this.symbols.size} symbols and ${this.types.size} types in Kuzu`));
-  }
-
-  private async executeBulkKuzu(commands: string[]): Promise<void> {
-    const batchSize = 100;
-    for (let i = 0; i < commands.length; i += batchSize) {
-      const batch = commands.slice(i, i + batchSize);
-      const batchScript = batch.join("\n");
-
-      const cmd = new Deno.Command("kuzu", {
-        args: [KUZU_DB_PATH],
-        stdin: "piped",
-        stdout: "piped",
-        stderr: "piped",
-      });
-
-      const process = cmd.spawn();
-      const writer = process.stdin.getWriter();
-      const encoder = new TextEncoder();
-
-      await writer.write(encoder.encode(batchScript + "\n.quit\n"));
-      await writer.close();
-
-      const { success } = await process.status;
-      if (!success) {
-        console.error(red("Failed to insert batch into Kuzu"));
+      if (sourceFiles.length === 0) {
+        logger.warn(`Could not parse file: ${filePath}`);
+        return;
       }
+
+      // Analyze the file
+      const results = this.analyzer.analyzeFile(sourceFiles[0]);
+
+      // Store results in databases
+      await this.storeResults(filePath, results);
+
+      // Update counters
+      this.symbolCount += results.symbols.length;
+      this.typeCount += results.types.length;
+      this.importCount += results.imports.length;
+      this.relationshipCount += results.relationships.length;
+
+      // Store file metrics
+      await this.storeFileMetrics(filePath, results);
+
+    } catch (error) {
+      logger.error(`Failed to process ${filePath}: ${error}`);
     }
   }
 
-  private async storeMetricsInDuckDB(): Promise<void> {
-    console.log(bold("\n📊 Calculating and storing metrics in DuckDB..."));
+  private async checkIfFileNeedsScanning(filePath: string): Promise<boolean> {
+    try {
+      const fileInfo = await Deno.stat(filePath);
+      const existingMetrics = await duckdbClient.getFileMetrics(filePath);
 
-    // Calculate file-level metrics
-    const fileMetrics: Map<string, any> = new Map();
+      if (!existingMetrics) {
+        return true; // File not in database
+      }
 
-    this.project.getSourceFiles().forEach(sourceFile => {
-      const filePath = sourceFile.getFilePath();
-      const lines = sourceFile.getEndLineNumber();
-      const functions = sourceFile.getFunctions().length;
-      const classes = sourceFile.getClasses().length;
-      const imports = sourceFile.getImportDeclarations().length;
-      const exports = sourceFile.getExportDeclarations().length;
+      // Check if file has changed since last analysis
+      if (existingMetrics.lastAnalyzed) {
+        return fileInfo.mtime!.getTime() > existingMetrics.lastAnalyzed.getTime();
+      }
 
-      fileMetrics.set(filePath, {
-        path: filePath,
-        lines,
-        functions,
-        classes,
-        imports,
-        exports,
-      });
-    });
+      return true; // No last analyzed date, rescan
+    } catch {
+      return true; // Scan on error
+    }
+  }
 
-    // Store in DuckDB
-    const insertCommands: string[] = [];
-    fileMetrics.forEach(metrics => {
-      const values = [
-        `'${metrics.path.replace(/'/g, "''")}'`,
-        metrics.lines,
-        metrics.lines, // code_lines (simplified)
-        0, // comment_lines
-        0, // blank_lines
-        0, // complexity_sum
-        0, // complexity_avg
-        metrics.imports,
-        metrics.exports,
-        metrics.classes,
-        metrics.functions,
-        `CURRENT_TIMESTAMP`,
-      ].join(", ");
+  private async calculateFileHash(content: string): Promise<string> {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(content);
+    const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  }
 
-      insertCommands.push(`INSERT OR REPLACE INTO file_metrics VALUES (${values});`);
-    });
+  private async storeResults(filePath: string, results: any): Promise<void> {
+    // Store symbols
+    if (results.symbols.length > 0) {
+      await kuzuClient.insertSymbols(results.symbols);
+    }
 
-    // Execute inserts
-    if (insertCommands.length > 0) {
-      const script = insertCommands.join("\n");
-      const cmd = new Deno.Command("duckdb", {
-        args: [DUCKDB_PATH, "-c", script],
-        stdout: "piped",
-        stderr: "piped",
-      });
+    // Store types
+    if (results.types.length > 0) {
+      await kuzuClient.insertTypes(results.types);
+    }
 
-      const { success } = await cmd.output();
-      if (success) {
-        console.log(green(`✓ Stored metrics for ${fileMetrics.size} files in DuckDB`));
+    // Store imports
+    if (results.imports.length > 0) {
+      await kuzuClient.insertImports(results.imports);
+    }
+
+    // Store relationships
+    if (results.relationships.length > 0) {
+      await kuzuClient.insertRelationships(results.relationships);
+    }
+  }
+
+  private async storeFileMetrics(filePath: string, results: any): Promise<void> {
+    const content = await Deno.readTextFile(filePath);
+    const lines = content.split('\n');
+    const totalLines = lines.length;
+
+    // Simple line classification
+    let codeLines = 0;
+    let commentLines = 0;
+    let blankLines = 0;
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (trimmed === '') {
+        blankLines++;
+      } else if (trimmed.startsWith('//') || trimmed.startsWith('/*') || trimmed.startsWith('*')) {
+        commentLines++;
       } else {
-        console.error(red("Failed to store metrics in DuckDB"));
+        codeLines++;
+      }
+    }
+
+    // Count different symbol types
+    const classCount = results.symbols.filter((s: any) => s.kind === 'class').length;
+    const functionCount = results.symbols.filter((s: any) =>
+      s.kind === 'function' || s.kind === 'method'
+    ).length;
+
+    // Calculate complexity
+    const complexitySum = results.symbols.length + results.types.length;
+    const complexityAvg = functionCount > 0 ? complexitySum / functionCount : 0;
+
+    const metrics: FileMetrics = {
+      filePath,
+      totalLines,
+      codeLines,
+      commentLines,
+      blankLines,
+      complexitySum,
+      complexityAvg,
+      importCount: results.imports.length,
+      exportCount: results.symbols.filter((s: any) => s.isExported).length,
+      classCount,
+      functionCount,
+      lastAnalyzed: new Date()
+    };
+
+    await duckdbClient.insertFileMetrics([metrics]);
+  }
+
+  private async reportResults(): Promise<void> {
+    logger.section("Scan Complete");
+
+    logger.info(`Files processed: ${this.fileCount}`);
+    logger.info(`Symbols extracted: ${this.symbolCount}`);
+    logger.info(`Types extracted: ${this.typeCount}`);
+    logger.info(`Imports extracted: ${this.importCount}`);
+    logger.info(`Relationships extracted: ${this.relationshipCount}`);
+
+    // Get database statistics
+    const kuzuStats = await kuzuClient.getStats();
+    const duckdbStats = await duckdbClient.getStats();
+
+    logger.subsection("Database Statistics");
+    logger.info("Kuzu Graph Database:");
+    for (const [key, value] of Object.entries(kuzuStats)) {
+      logger.info(`  ${key}: ${value}`);
+    }
+
+    logger.info("DuckDB Analytics:");
+    for (const [key, value] of Object.entries(duckdbStats)) {
+      if (typeof value === 'object') continue;
+      logger.info(`  ${key}: ${value}`);
+    }
+
+    // Show top complex files
+    const complexFiles = await duckdbClient.getComplexityTrends(5);
+    if (complexFiles.length > 0) {
+      logger.subsection("Most Complex Files");
+      for (const file of complexFiles) {
+        logger.info(`  ${file.file_path}: complexity=${file.complexity}, lines=${file.line_count}`);
       }
     }
   }
 }
 
-// CLI interface
+// CLI Entry Point
 async function main() {
   const args = parse(Deno.args, {
     string: ["path", "include", "exclude"],
-    boolean: ["incremental", "verbose", "help"],
+    boolean: ["incremental", "verbose", "clear", "help"],
     default: {
       path: ".",
       incremental: false,
       verbose: false,
+      clear: false,
+    },
+    alias: {
+      p: "path",
+      i: "incremental",
+      v: "verbose",
+      c: "clear",
+      h: "help",
     },
   });
 
   if (args.help) {
     console.log(`
-${bold("scan-codebase")} - Extract TypeScript/JavaScript AST into semantic database
+AST Code Scanner - Extract code structure into graph database
 
-${bold("Usage:")}
-  deno task scan [options]
+Usage: deno task scan [options]
 
-${bold("Options:")}
-  --path <dir>        Directory to scan (default: current directory)
-  --incremental       Only scan changed files
-  --verbose           Show detailed progress
-  --include <pattern> Include only matching paths (comma-separated)
-  --exclude <pattern> Exclude matching paths (comma-separated)
-  --help              Show this help message
+Options:
+  -p, --path <path>       Path to scan (default: current directory)
+  -i, --incremental       Only scan changed files
+  -v, --verbose           Verbose output
+  -c, --clear             Clear existing data before scanning
+  --include <patterns>    Include file patterns (comma-separated)
+  --exclude <patterns>    Exclude file patterns (comma-separated)
+  -h, --help             Show this help message
 
-${bold("Examples:")}
+Examples:
   deno task scan
-  deno task scan --path ./src --verbose
-  deno task scan --include src,lib --exclude test
+  deno task scan -p ./src --verbose
+  deno task scan --incremental --include="src/**/*.ts"
+  deno task scan --clear --exclude="**/*.test.ts,**/node_modules/**"
 `);
     Deno.exit(0);
   }
 
   const options: ScanOptions = {
-    path: args.path,
-    incremental: args.incremental,
-    verbose: args.verbose,
-    include: args.include?.split(","),
-    exclude: args.exclude?.split(","),
+    path: args.path as string,
+    incremental: args.incremental as boolean,
+    verbose: args.verbose as boolean,
+    clear: args.clear as boolean,
+    include: args.include ? (args.include as string).split(",") : undefined,
+    exclude: args.exclude ? (args.exclude as string).split(",") : undefined,
   };
 
-  console.log(bold(green("\n🚀 TypeScript/JavaScript AST Scanner")));
-  console.log("=" .repeat(50));
-
-  const scanner = new ASTScanner(options);
-  await scanner.scan();
-
-  console.log(bold(green("\n✅ Scan complete!")));
-  console.log("\nNext steps:");
-  console.log("  1. Run", bold("deno task query"), "to query the semantic database");
-  console.log("  2. Run", bold("deno task analyze"), "to generate analysis reports");
-  console.log("  3. Run", bold("deno task watch"), "to keep database synchronized");
+  try {
+    const scanner = new CodebaseScanner(options);
+    await scanner.scan();
+  } catch (error) {
+    logger.error(`Scan failed: ${error}`);
+    Deno.exit(1);
+  }
 }
 
+// Run if executed directly
 if (import.meta.main) {
-  await main();
+  main();
 }

@@ -1,280 +1,1381 @@
--- Core Symbol table: Functions, Classes, Interfaces, Types
-CREATE NODE TABLE Symbol (
-  id STRING PRIMARY KEY,
-  name STRING,
-  kind STRING,
-  file_path STRING,
-  line INT32,
-  column INT32,
-  is_exported BOOLEAN,
-  is_async BOOLEAN,
-  visibility STRING,
-  jsdoc STRING,
-  git_sha STRING,
-  last_modified TIMESTAMP
-) WITH (ID_PREFIX = 'symbol_');
--- Type information
-CREATE NODE TABLE Type (
-  id STRING PRIMARY KEY,
-  name STRING,
-  kind STRING,
-  definition STRING,
-  is_generic BOOLEAN,
-  type_params STRING[],
-  file_path STRING,
-  line INT32
-) WITH (ID_PREFIX = 'type_');
--- Import statements
-CREATE NODE TABLE Import (
-  id STRING PRIMARY KEY,
-  source_file STRING,
-  imported_path STRING,
-  specifiers STRING[],
-  is_type_only BOOLEAN,
-  is_default BOOLEAN,
-  is_namespace BOOLEAN,
-  git_sha STRING
-) WITH (ID_PREFIX = 'import_');
--- Test definitions
-CREATE NODE TABLE Test (
-  id STRING PRIMARY KEY,
-  name STRING,
-  test_file STRING,
-  tests_symbol STRING,
-  test_type STRING,
-  line INT32,
-  is_async BOOLEAN,
-  tags STRING[]
-) WITH (ID_PREFIX = 'test_');
--- File nodes for file-level metadata
-CREATE NODE TABLE File (
-  id STRING PRIMARY KEY,
-  path STRING,
-  relative_path STRING,
-  extension STRING,
-  size INT64,
-  lines INT32,
-  hash STRING,
-  last_modified TIMESTAMP
-) WITH (ID_PREFIX = 'file_');
--- Relationships between nodes
-CREATE REL TABLE EXTENDS (FROM Symbol TO Type);
-CREATE REL TABLE IMPLEMENTS (FROM Symbol TO Type);
-CREATE REL TABLE RETURNS (FROM Symbol TO Type);
-CREATE REL TABLE HAS_PARAMETER (FROM Symbol TO Type, position INT32, name STRING, is_optional BOOLEAN);
-CREATE REL TABLE CALLS (FROM Symbol TO Symbol, count INT32, is_recursive BOOLEAN);
-CREATE REL TABLE DEPENDS_ON (FROM Symbol TO Import);
-CREATE REL TABLE TESTS (FROM Test TO Symbol);
-CREATE REL TABLE DEFINED_IN (FROM Symbol TO File);
-CREATE REL TABLE IMPORTS_FROM (FROM File TO File, import_count INT32);
-CREATE REL TABLE REFERENCES (FROM Symbol TO Symbol, reference_count INT32);
-CREATE REL TABLE MEMBER_OF (FROM Symbol TO Symbol, is_static BOOLEAN);
-.quit
+CREATE (:Symbol {id: 'test1', name: 'Test', kind: 'function', file: 'test.ts', line: 1, col: 1, exported: true, gitSha: 'abc123'});
+MATCH (s:Symbol) RETURN s;
+MATCH (n) RETURN COUNT(n) as count LIMIT 1
 ;
-CALL show_tables();
-.quit
+MATCH (n) DETACH DELETE n
 ;
--- Core Symbol table: Functions, Classes, Interfaces, Types
-CREATE NODE TABLE Symbol (
-  id STRING PRIMARY KEY,
-  name STRING,
-  kind STRING,
-  file_path STRING,
-  line INT32,
-  column INT32,
-  is_exported BOOLEAN,
-  is_async BOOLEAN,
-  visibility STRING,
-  jsdoc STRING,
-  git_sha STRING,
-  last_modified TIMESTAMP
-) WITH (ID_PREFIX = 'symbol_');
--- Type information
-CREATE NODE TABLE Type (
-  id STRING PRIMARY KEY,
-  name STRING,
-  kind STRING,
-  definition STRING,
-  is_generic BOOLEAN,
-  type_params STRING[],
-  file_path STRING,
-  line INT32
-) WITH (ID_PREFIX = 'type_');
--- Import statements
-CREATE NODE TABLE Import (
-  id STRING PRIMARY KEY,
-  source_file STRING,
-  imported_path STRING,
-  specifiers STRING[],
-  is_type_only BOOLEAN,
-  is_default BOOLEAN,
-  is_namespace BOOLEAN,
-  git_sha STRING
-) WITH (ID_PREFIX = 'import_');
--- Test definitions
-CREATE NODE TABLE Test (
-  id STRING PRIMARY KEY,
-  name STRING,
-  test_file STRING,
-  tests_symbol STRING,
-  test_type STRING,
-  line INT32,
-  is_async BOOLEAN,
-  tags STRING[]
-) WITH (ID_PREFIX = 'test_');
--- File nodes for file-level metadata
-CREATE NODE TABLE File (
-  id STRING PRIMARY KEY,
-  path STRING,
-  relative_path STRING,
-  extension STRING,
-  size INT64,
-  lines INT32,
-  hash STRING,
-  last_modified TIMESTAMP
-) WITH (ID_PREFIX = 'file_');
--- Relationships between nodes
-CREATE REL TABLE EXTENDS (FROM Symbol TO Type);
-CREATE REL TABLE IMPLEMENTS (FROM Symbol TO Type);
-CREATE REL TABLE RETURNS (FROM Symbol TO Type);
-CREATE REL TABLE HAS_PARAMETER (FROM Symbol TO Type, position INT32, name STRING, is_optional BOOLEAN);
-CREATE REL TABLE CALLS (FROM Symbol TO Symbol, count INT32, is_recursive BOOLEAN);
-CREATE REL TABLE DEPENDS_ON (FROM Symbol TO Import);
-CREATE REL TABLE TESTS (FROM Test TO Symbol);
-CREATE REL TABLE DEFINED_IN (FROM Symbol TO File);
-CREATE REL TABLE IMPORTS_FROM (FROM File TO File, import_count INT32);
-CREATE REL TABLE REFERENCES (FROM Symbol TO Symbol, reference_count INT32);
-CREATE REL TABLE MEMBER_OF (FROM Symbol TO Symbol, is_static BOOLEAN);
-.quit
+CREATE (:Symbol {id: 'symbol_1759082537357_1', name: 'Logger', kind: 'class', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 15, col: 256, exported: true, gitSha: ''})
 ;
-CALL show_tables();
-.quit
+CREATE (:Symbol {id: 'symbol_1759082537820_2', name: 'setLevel', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 22, col: 377, exported: false, gitSha: ''})
 ;
-INSERT INTO Symbol VALUES ('symbol_mg3veu6ay03kfdvhu', 'commandExists', 'function', '/workspaces/mastra-context-network/scripts/doctor.ts', 18, 450, false, true, 'public', '', '', CURRENT_TIMESTAMP);
-INSERT INTO Symbol VALUES ('symbol_mg3veufojfdwek7i4', 'main', 'function', '/workspaces/mastra-context-network/scripts/doctor.ts', 231, 5575, false, true, 'public', '', '', CURRENT_TIMESTAMP);
-INSERT INTO Symbol VALUES ('symbol_mg3veufogg10soa8y', 'getCategoryEmoji', 'function', '/workspaces/mastra-context-network/scripts/doctor.ts', 292, 7390, false, false, 'public', '', '', CURRENT_TIMESTAMP);
-INSERT INTO Symbol VALUES ('symbol_mg3veufo66utipoc6', 'getCategoryName', 'function', '/workspaces/mastra-context-network/scripts/doctor.ts', 302, 7628, false, false, 'public', '', '', CURRENT_TIMESTAMP);
-INSERT INTO Symbol VALUES ('symbol_mg3veufo3fu19g89m', 'Check', 'interface', '/workspaces/mastra-context-network/scripts/doctor.ts', 11, 264, false, false, 'public', '', '', CURRENT_TIMESTAMP);
-INSERT INTO Symbol VALUES ('symbol_mg3veufprmbcltz8s', 'checks', 'variable', '/workspaces/mastra-context-network/scripts/doctor.ts', 39, 924, false, false, 'public', '', '', CURRENT_TIMESTAMP);
-INSERT INTO Symbol VALUES ('symbol_mg3veufril98mb9fr', 'main', 'function', '/workspaces/mastra-context-network/scripts/init.ts', 274, 7421, false, true, 'public', '', '', CURRENT_TIMESTAMP);
-INSERT INTO Symbol VALUES ('symbol_mg3veufr5hcl11evw', 'InitStep', 'interface', '/workspaces/mastra-context-network/scripts/init.ts', 11, 292, false, false, 'public', '', '', CURRENT_TIMESTAMP);
-INSERT INTO Symbol VALUES ('symbol_mg3veufrd4166lm5e', 'steps', 'variable', '/workspaces/mastra-context-network/scripts/init.ts', 18, 417, false, false, 'public', '', '', CURRENT_TIMESTAMP);
-INSERT INTO Symbol VALUES ('symbol_mg3veufrrit198moi', 'initializeKuzu', 'function', '/workspaces/mastra-context-network/scripts/init-databases.ts', 24, 635, false, true, 'public', 'Initialize Kuzu semantic graph database
-Stores AST nodes, symbols, types, and their relationships', '', CURRENT_TIMESTAMP);
-INSERT INTO Symbol VALUES ('symbol_mg3veufstczc19p8u', 'initializeDuckDB', 'function', '/workspaces/mastra-context-network/scripts/init-databases.ts', 166, 4492, false, true, 'public', 'Initialize DuckDB analytics database
-Stores code metrics, performance data, and statistical analysis', '', CURRENT_TIMESTAMP);
-INSERT INTO Symbol VALUES ('symbol_mg3veufs8i37utrpr', 'verifyDatabases', 'function', '/workspaces/mastra-context-network/scripts/init-databases.ts', 316, 8671, false, true, 'public', 'Verify databases are accessible and have correct schemas', '', CURRENT_TIMESTAMP);
-INSERT INTO Symbol VALUES ('symbol_mg3veufsk19vzgd19', 'main', 'function', '/workspaces/mastra-context-network/scripts/init-databases.ts', 367, 10049, false, true, 'public', '', '', CURRENT_TIMESTAMP);
-INSERT INTO Symbol VALUES ('symbol_mg3veufsb5dbhpbwf', 'DatabaseInitResult', 'interface', '/workspaces/mastra-context-network/scripts/init-databases.ts', 14, 430, false, false, 'public', '', '', CURRENT_TIMESTAMP);
-INSERT INTO Symbol VALUES ('symbol_mg3veufs8xb9vd508', 'KUZU_DB_PATH', 'variable', '/workspaces/mastra-context-network/scripts/init-databases.ts', 11, 282, false, false, 'public', '', '', CURRENT_TIMESTAMP);
-INSERT INTO Symbol VALUES ('symbol_mg3veufsdc0kaeq08', 'DUCKDB_PATH', 'variable', '/workspaces/mastra-context-network/scripts/init-databases.ts', 12, 356, false, false, 'public', '', '', CURRENT_TIMESTAMP);
-INSERT INTO Symbol VALUES ('symbol_mg3veuftcm5pvkj6h', 'checkTypeCoverage', 'function', '/workspaces/mastra-context-network/scripts/code-metrics.ts', 6, 158, false, true, 'public', '', '', CURRENT_TIMESTAMP);
-INSERT INTO Symbol VALUES ('symbol_mg3veufuzaupdnvvp', 'checkTypeCoverage', 'function', '/workspaces/mastra-context-network/scripts/watch-types.ts', 6, 158, false, true, 'public', '', '', CURRENT_TIMESTAMP);
-INSERT INTO Symbol VALUES ('symbol_mg3veufu44exitvi7', 'executeKuzuQuery', 'function', '/workspaces/mastra-context-network/scripts/kuzu-query.ts', 18, 416, false, true, 'public', '', '', CURRENT_TIMESTAMP);
-INSERT INTO Symbol VALUES ('symbol_mg3veufumw5awhtnb', 'parseKuzuOutput', 'function', '/workspaces/mastra-context-network/scripts/kuzu-query.ts', 57, 1427, false, false, 'public', '', '', CURRENT_TIMESTAMP);
-INSERT INTO Symbol VALUES ('symbol_mg3veufutk54dexni', 'parseValue', 'function', '/workspaces/mastra-context-network/scripts/kuzu-query.ts', 93, 2286, false, false, 'public', '', '', CURRENT_TIMESTAMP);
-INSERT INTO Symbol VALUES ('symbol_mg3veufuhzojqvvnl', 'QueryOptions', 'interface', '/workspaces/mastra-context-network/scripts/kuzu-query.ts', 11, 294, false, false, 'public', '', '', CURRENT_TIMESTAMP);
-INSERT INTO Symbol VALUES ('symbol_mg3veufupdli91qci', 'QUERY_TEMPLATES', 'variable', '/workspaces/mastra-context-network/scripts/kuzu-query.ts', 108, 2709, false, false, 'public', '', '', CURRENT_TIMESTAMP);
-INSERT INTO Symbol VALUES ('symbol_mg3veufvzbamk0yzl', 'main', 'function', '/workspaces/mastra-context-network/scripts/scan-codebase.ts', 541, 15994, false, true, 'public', '', '', CURRENT_TIMESTAMP);
-INSERT INTO Symbol VALUES ('symbol_mg3veufvhgvlxmuxy', 'ASTScanner', 'class', '/workspaces/mastra-context-network/scripts/scan-codebase.ts', 67, 1469, false, false, 'public', '', '', CURRENT_TIMESTAMP);
-INSERT INTO Symbol VALUES ('symbol_mg3veufvaczvs4k01', 'scan', 'method', '/workspaces/mastra-context-network/scripts/scan-codebase.ts', 100, 2531, false, true, 'public', '', '', CURRENT_TIMESTAMP);
-INSERT INTO Symbol VALUES ('symbol_mg3veufvyouetoer8', 'findSourceFiles', 'method', '/workspaces/mastra-context-network/scripts/scan-codebase.ts', 130, 3478, false, true, 'private', '', '', CURRENT_TIMESTAMP);
-INSERT INTO Symbol VALUES ('symbol_mg3veufvzeofhk0y0', 'processFile', 'method', '/workspaces/mastra-context-network/scripts/scan-codebase.ts', 164, 4427, false, true, 'private', '', '', CURRENT_TIMESTAMP);
-INSERT INTO Symbol VALUES ('symbol_mg3veufv7salk5hv5', 'extractImports', 'method', '/workspaces/mastra-context-network/scripts/scan-codebase.ts', 184, 4960, false, false, 'private', '', '', CURRENT_TIMESTAMP);
-INSERT INTO Symbol VALUES ('symbol_mg3veufvuiq6nol7r', 'extractSymbols', 'method', '/workspaces/mastra-context-network/scripts/scan-codebase.ts', 210, 5888, false, false, 'private', '', '', CURRENT_TIMESTAMP);
-INSERT INTO Symbol VALUES ('symbol_mg3veufvvzoj97m6h', 'extractTypes', 'method', '/workspaces/mastra-context-network/scripts/scan-codebase.ts', 257, 7300, false, false, 'private', '', '', CURRENT_TIMESTAMP);
-INSERT INTO Symbol VALUES ('symbol_mg3veufvyiyb8040b', 'extractRelationships', 'method', '/workspaces/mastra-context-network/scripts/scan-codebase.ts', 293, 8417, false, false, 'private', '', '', CURRENT_TIMESTAMP);
-INSERT INTO Symbol VALUES ('symbol_mg3veufvbxvasxz75', 'addSymbol', 'method', '/workspaces/mastra-context-network/scripts/scan-codebase.ts', 320, 9307, false, false, 'private', '', '', CURRENT_TIMESTAMP);
-INSERT INTO Symbol VALUES ('symbol_mg3veufvlgogw5cin', 'addRelationship', 'method', '/workspaces/mastra-context-network/scripts/scan-codebase.ts', 344, 9944, false, false, 'private', '', '', CURRENT_TIMESTAMP);
-INSERT INTO Symbol VALUES ('symbol_mg3veufvggyaoi3hy', 'getNodeName', 'method', '/workspaces/mastra-context-network/scripts/scan-codebase.ts', 348, 10118, false, false, 'private', '', '', CURRENT_TIMESTAMP);
-INSERT INTO Symbol VALUES ('symbol_mg3veufvd0uwok63v', 'isNodeExported', 'method', '/workspaces/mastra-context-network/scripts/scan-codebase.ts', 363, 10627, false, false, 'private', '', '', CURRENT_TIMESTAMP);
-INSERT INTO Symbol VALUES ('symbol_mg3veufvvpqeuztxn', 'isNodeAsync', 'method', '/workspaces/mastra-context-network/scripts/scan-codebase.ts', 371, 10877, false, false, 'private', '', '', CURRENT_TIMESTAMP);
-INSERT INTO Symbol VALUES ('symbol_mg3veufvqqilqnuga', 'getNodeVisibility', 'method', '/workspaces/mastra-context-network/scripts/scan-codebase.ts', 378, 11058, false, false, 'private', '', '', CURRENT_TIMESTAMP);
-INSERT INTO Symbol VALUES ('symbol_mg3veufvse0zi1apb', 'getNodeJSDoc', 'method', '/workspaces/mastra-context-network/scripts/scan-codebase.ts', 386, 11368, false, false, 'private', '', '', CURRENT_TIMESTAMP);
-INSERT INTO Symbol VALUES ('symbol_mg3veufvafhgn8yhc', 'generateId', 'method', '/workspaces/mastra-context-network/scripts/scan-codebase.ts', 397, 11744, false, false, 'private', '', '', CURRENT_TIMESTAMP);
-INSERT INTO Symbol VALUES ('symbol_mg3veufve75nyc7p3', 'storeInKuzu', 'method', '/workspaces/mastra-context-network/scripts/scan-codebase.ts', 401, 11860, false, true, 'private', '', '', CURRENT_TIMESTAMP);
-INSERT INTO Symbol VALUES ('symbol_mg3veufvkr7acry9a', 'executeBulkKuzu', 'method', '/workspaces/mastra-context-network/scripts/scan-codebase.ts', 449, 13281, false, true, 'private', '', '', CURRENT_TIMESTAMP);
-INSERT INTO Symbol VALUES ('symbol_mg3veufv2gdect8b9', 'storeMetricsInDuckDB', 'method', '/workspaces/mastra-context-network/scripts/scan-codebase.ts', 476, 14071, false, true, 'private', '', '', CURRENT_TIMESTAMP);
-INSERT INTO Symbol VALUES ('symbol_mg3veufw5z85j8eoy', 'project', 'property', '/workspaces/mastra-context-network/scripts/scan-codebase.ts', 68, 1488, false, false, 'private', '', '', CURRENT_TIMESTAMP);
-INSERT INTO Symbol VALUES ('symbol_mg3veufwuv5h6ervm', 'symbols', 'property', '/workspaces/mastra-context-network/scripts/scan-codebase.ts', 69, 1516, false, false, 'private', '', '', CURRENT_TIMESTAMP);
-INSERT INTO Symbol VALUES ('symbol_mg3veufwsgmudtngn', 'types', 'property', '/workspaces/mastra-context-network/scripts/scan-codebase.ts', 70, 1577, false, false, 'private', '', '', CURRENT_TIMESTAMP);
-INSERT INTO Symbol VALUES ('symbol_mg3veufw7upuoqunk', 'imports', 'property', '/workspaces/mastra-context-network/scripts/scan-codebase.ts', 71, 1634, false, false, 'private', '', '', CURRENT_TIMESTAMP);
-INSERT INTO Symbol VALUES ('symbol_mg3veufwewip5tb75', 'relationships', 'property', '/workspaces/mastra-context-network/scripts/scan-codebase.ts', 72, 1695, false, false, 'private', '', '', CURRENT_TIMESTAMP);
-INSERT INTO Symbol VALUES ('symbol_mg3veufwgyzapu3lx', 'fileHashes', 'property', '/workspaces/mastra-context-network/scripts/scan-codebase.ts', 73, 1741, false, false, 'private', '', '', CURRENT_TIMESTAMP);
-INSERT INTO Symbol VALUES ('symbol_mg3veufwte8dectpa', 'ScanOptions', 'interface', '/workspaces/mastra-context-network/scripts/scan-codebase.ts', 17, 629, false, false, 'public', '', '', CURRENT_TIMESTAMP);
-INSERT INTO Symbol VALUES ('symbol_mg3veufw6dvwqgt82', 'ExtractedSymbol', 'interface', '/workspaces/mastra-context-network/scripts/scan-codebase.ts', 26, 781, false, false, 'public', '', '', CURRENT_TIMESTAMP);
-INSERT INTO Symbol VALUES ('symbol_mg3veufw4lmk9uxbi', 'ExtractedType', 'interface', '/workspaces/mastra-context-network/scripts/scan-codebase.ts', 39, 994, false, false, 'public', '', '', CURRENT_TIMESTAMP);
-INSERT INTO Symbol VALUES ('symbol_mg3veufw2ijiyxqs8', 'ExtractedImport', 'interface', '/workspaces/mastra-context-network/scripts/scan-codebase.ts', 50, 1173, false, false, 'public', '', '', CURRENT_TIMESTAMP);
-INSERT INTO Symbol VALUES ('symbol_mg3veufwd5z6b6xb8', 'Relationship', 'interface', '/workspaces/mastra-context-network/scripts/scan-codebase.ts', 60, 1357, false, false, 'public', '', '', CURRENT_TIMESTAMP);
-INSERT INTO Symbol VALUES ('symbol_mg3veufwg6etrzimr', 'KUZU_DB_PATH', 'variable', '/workspaces/mastra-context-network/scripts/scan-codebase.ts', 14, 481, false, false, 'public', '', '', CURRENT_TIMESTAMP);
-INSERT INTO Symbol VALUES ('symbol_mg3veufw72jtwn6q8', 'DUCKDB_PATH', 'variable', '/workspaces/mastra-context-network/scripts/scan-codebase.ts', 15, 555, false, false, 'public', '', '', CURRENT_TIMESTAMP);
-INSERT INTO Type VALUES ('type_mg3veufpot3kybwk7', 'Check', 'interface', 'interface Check {
-  name: string;
-  category: "runtime" | "tool" | "database" | "config";
-  check: () => Promise<{ ok: boolean; message?: string; version?: string }>;
-  fix?: string;
-}', false, [''], '/workspaces/mastra-context-network/scripts/doctor.ts', 11);
-INSERT INTO Type VALUES ('type_mg3veufrp637evnn4', 'InitStep', 'interface', 'interface InitStep {
-  name: string;
-  check: () => Promise<boolean>;
-  action: () => Promise<void>;
-  required: boolean;
-}', false, [''], '/workspaces/mastra-context-network/scripts/init.ts', 11);
-INSERT INTO Type VALUES ('type_mg3veufsqiqlqpkfo', 'DatabaseInitResult', 'interface', 'interface DatabaseInitResult {
-  success: boolean;
-  database: string;
-  message: string;
-}', false, [''], '/workspaces/mastra-context-network/scripts/init-databases.ts', 14);
-INSERT INTO Type VALUES ('type_mg3veufunrofuhxy2', 'QueryOptions', 'interface', 'interface QueryOptions {
-  query: string;
-  format?: "json" | "csv" | "table";
-  database?: string;
-  output?: string;
-}', false, [''], '/workspaces/mastra-context-network/scripts/kuzu-query.ts', 11);
-INSERT INTO Type VALUES ('type_mg3veufwedzv0093h', 'ScanOptions', 'interface', 'interface ScanOptions {
-  path: string;
-  incremental: boolean;
-  verbose: boolean;
-  include?: string[];
-  exclude?: string[];
-  maxDepth?: number;
-}', false, [''], '/workspaces/mastra-context-network/scripts/scan-codebase.ts', 17);
-INSERT INTO Type VALUES ('type_mg3veufw5xhxkp1k9', 'ExtractedSymbol', 'interface', 'interface ExtractedSymbol {
-  id: string;
-  name: string;
-  kind: string;
-  filePath: string;
-  line: number;
-  column: number;
-  isExported: boolean;
-  isAsync: boolean;
-  visibility: string;
-  jsdoc: string;
-}', false, [''], '/workspaces/mastra-context-network/scripts/scan-codebase.ts', 26);
-INSERT INTO Type VALUES ('type_mg3veufwqa6jgbgiw', 'ExtractedType', 'interface', 'interface ExtractedType {
-  id: string;
-  name: string;
-  kind: string;
-  definition: string;
-  isGeneric: boolean;
-  typeParams: string[];
-  filePath: string;
-  line: number;
-}', false, [''], '/workspaces/mastra-context-network/scripts/scan-codebase.ts', 39);
-INSERT INTO Type VALUES ('type_mg3veufw59dkcxr4m', 'ExtractedImport', 'interface', 'interface ExtractedImport {
-  id: string;
-  sourceFile: string;
-  importedPath: string;
-  specifiers: string[];
-  isTypeOnly: boolean;
-  isDefault: boolean;
-  isNamespace: boolean;
-}', false, [''], '/workspaces/mastra-context-network/scripts/scan-codebase.ts', 50);
-INSERT INTO Type VALUES ('type_mg3veufwmnranz1ut', 'Relationship', 'interface', 'interface Relationship {
-  from: string;
-  to: string;
-  type: string;
-  metadata?: Record<string, unknown>;
-}', false, [''], '/workspaces/mastra-context-network/scripts/scan-codebase.ts', 60);
-.quit
+CREATE (:Symbol {id: 'symbol_1759082537820_3', name: 'debug', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 26, col: 442, exported: false, gitSha: ''})
 ;
+CREATE (:Symbol {id: 'symbol_1759082537820_4', name: 'info', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 32, col: 573, exported: false, gitSha: ''})
+;
+CREATE (:Symbol {id: 'symbol_1759082537820_5', name: 'success', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 38, col: 702, exported: false, gitSha: ''})
+;
+CREATE (:Symbol {id: 'symbol_1759082537820_6', name: 'warn', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 44, col: 830, exported: false, gitSha: ''})
+;
+CREATE (:Symbol {id: 'symbol_1759082537820_7', name: 'error', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 50, col: 957, exported: false, gitSha: ''})
+;
+CREATE (:Symbol {id: 'symbol_1759082537820_8', name: 'progress', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 56, col: 1084, exported: false, gitSha: ''})
+;
+CREATE (:Symbol {id: 'symbol_1759082537820_9', name: 'section', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 62, col: 1213, exported: false, gitSha: ''})
+;
+CREATE (:Symbol {id: 'symbol_1759082537820_10', name: 'subsection', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 69, col: 1371, exported: false, gitSha: ''})
+;
+CREATE (:Symbol {id: 'symbol_1759082537821_11', name: 'level', kind: 'property', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 16, col: 271, exported: false, gitSha: ''})
+;
+CREATE (:Symbol {id: 'symbol_1759082537821_12', name: 'LogLevel', kind: 'enum', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 7, col: 168, exported: true, gitSha: ''})
+;
+CREATE (:Symbol {id: 'symbol_1759082537821_13', name: 'logger', kind: 'exported-var', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 77, col: 1532, exported: true, gitSha: ''})
+;
+MERGE (from:Symbol {name: 'setLevel'})
+;
+MERGE (to:Symbol {name: 'Logger'})
+;
+MATCH (from:Symbol {name: 'setLevel'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to)
+;
+MERGE (from:Symbol {name: 'debug'})
+;
+MERGE (to:Symbol {name: 'Logger'})
+;
+MATCH (from:Symbol {name: 'debug'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to)
+;
+MERGE (from:Symbol {name: 'info'})
+;
+MERGE (to:Symbol {name: 'Logger'})
+;
+MATCH (from:Symbol {name: 'info'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to)
+;
+MERGE (from:Symbol {name: 'success'})
+;
+MERGE (to:Symbol {name: 'Logger'})
+;
+MATCH (from:Symbol {name: 'success'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to)
+;
+MERGE (from:Symbol {name: 'warn'})
+;
+MERGE (to:Symbol {name: 'Logger'})
+;
+MATCH (from:Symbol {name: 'warn'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to)
+;
+MERGE (from:Symbol {name: 'error'})
+;
+MERGE (to:Symbol {name: 'Logger'})
+;
+MATCH (from:Symbol {name: 'error'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to)
+;
+MERGE (from:Symbol {name: 'progress'})
+;
+MERGE (to:Symbol {name: 'Logger'})
+;
+MATCH (from:Symbol {name: 'progress'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to)
+;
+MERGE (from:Symbol {name: 'section'})
+;
+MERGE (to:Symbol {name: 'Logger'})
+;
+MATCH (from:Symbol {name: 'section'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to)
+;
+MERGE (from:Symbol {name: 'subsection'})
+;
+MERGE (to:Symbol {name: 'Logger'})
+;
+MATCH (from:Symbol {name: 'subsection'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to)
+;
+MERGE (from:Symbol {name: 'level'})
+;
+MERGE (to:Symbol {name: 'Logger'})
+;
+MATCH (from:Symbol {name: 'level'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to)
+;
+MATCH (n:Symbol) RETURN COUNT(n) as count
+;
+MATCH (n:Type) RETURN COUNT(n) as count
+;
+MATCH (n:Import) RETURN COUNT(n) as count
+;
+MATCH (n:File) RETURN COUNT(n) as count
+;
+MATCH (n:Module) RETURN COUNT(n) as count
+;
+MATCH ()-[r:CALLS]->() RETURN COUNT(r) as count
+;
+MATCH ()-[r:IMPORTS]->() RETURN COUNT(r) as count
+;
+MATCH ()-[r:EXTENDS]->() RETURN COUNT(r) as count
+;
+MATCH ()-[r:IMPLEMENTS]->() RETURN COUNT(r) as count
+;
+MATCH ()-[r:MEMBER_OF]->() RETURN COUNT(r) as count
+;
+MATCH (s:Symbol) RETURN COUNT(s) as count;
+MATCH (n) RETURN COUNT(n) as count LIMIT 1
+;
+MATCH (n) DETACH DELETE n
+;
+CREATE (:Symbol {id: 'symbol_1759082569137_1', name: 'Logger', kind: 'class', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 15, col: 256, exported: true, gitSha: ''})
+;
+CREATE (:Symbol {id: 'symbol_1759082569573_2', name: 'setLevel', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 22, col: 377, exported: false, gitSha: ''})
+;
+CREATE (:Symbol {id: 'symbol_1759082569573_3', name: 'debug', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 26, col: 442, exported: false, gitSha: ''})
+;
+CREATE (:Symbol {id: 'symbol_1759082569573_4', name: 'info', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 32, col: 573, exported: false, gitSha: ''})
+;
+CREATE (:Symbol {id: 'symbol_1759082569573_5', name: 'success', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 38, col: 702, exported: false, gitSha: ''})
+;
+CREATE (:Symbol {id: 'symbol_1759082569573_6', name: 'warn', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 44, col: 830, exported: false, gitSha: ''})
+;
+CREATE (:Symbol {id: 'symbol_1759082569573_7', name: 'error', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 50, col: 957, exported: false, gitSha: ''})
+;
+CREATE (:Symbol {id: 'symbol_1759082569573_8', name: 'progress', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 56, col: 1084, exported: false, gitSha: ''})
+;
+CREATE (:Symbol {id: 'symbol_1759082569573_9', name: 'section', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 62, col: 1213, exported: false, gitSha: ''})
+;
+CREATE (:Symbol {id: 'symbol_1759082569573_10', name: 'subsection', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 69, col: 1371, exported: false, gitSha: ''})
+;
+CREATE (:Symbol {id: 'symbol_1759082569573_11', name: 'level', kind: 'property', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 16, col: 271, exported: false, gitSha: ''})
+;
+CREATE (:Symbol {id: 'symbol_1759082569573_12', name: 'LogLevel', kind: 'enum', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 7, col: 168, exported: true, gitSha: ''})
+;
+CREATE (:Symbol {id: 'symbol_1759082569573_13', name: 'logger', kind: 'exported-var', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 77, col: 1532, exported: true, gitSha: ''})
+;
+MERGE (from:Symbol {name: 'setLevel'})
+;
+MERGE (to:Symbol {name: 'Logger'})
+;
+MATCH (from:Symbol {name: 'setLevel'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to)
+;
+MERGE (from:Symbol {name: 'debug'})
+;
+MERGE (to:Symbol {name: 'Logger'})
+;
+MATCH (from:Symbol {name: 'debug'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to)
+;
+MERGE (from:Symbol {name: 'info'})
+;
+MERGE (to:Symbol {name: 'Logger'})
+;
+MATCH (from:Symbol {name: 'info'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to)
+;
+MERGE (from:Symbol {name: 'success'})
+;
+MERGE (to:Symbol {name: 'Logger'})
+;
+MATCH (from:Symbol {name: 'success'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to)
+;
+MERGE (from:Symbol {name: 'warn'})
+;
+MERGE (to:Symbol {name: 'Logger'})
+;
+MATCH (from:Symbol {name: 'warn'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to)
+;
+MERGE (from:Symbol {name: 'error'})
+;
+MERGE (to:Symbol {name: 'Logger'})
+;
+MATCH (from:Symbol {name: 'error'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to)
+;
+MERGE (from:Symbol {name: 'progress'})
+;
+MERGE (to:Symbol {name: 'Logger'})
+;
+MATCH (from:Symbol {name: 'progress'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to)
+;
+MERGE (from:Symbol {name: 'section'})
+;
+MERGE (to:Symbol {name: 'Logger'})
+;
+MATCH (from:Symbol {name: 'section'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to)
+;
+MERGE (from:Symbol {name: 'subsection'})
+;
+MERGE (to:Symbol {name: 'Logger'})
+;
+MATCH (from:Symbol {name: 'subsection'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to)
+;
+MERGE (from:Symbol {name: 'level'})
+;
+MERGE (to:Symbol {name: 'Logger'})
+;
+MATCH (from:Symbol {name: 'level'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to)
+;
+MATCH (n:Symbol) RETURN COUNT(n) as count
+;
+MATCH (n:Type) RETURN COUNT(n) as count
+;
+MATCH (n:Import) RETURN COUNT(n) as count
+;
+MATCH (n:File) RETURN COUNT(n) as count
+;
+MATCH (n:Module) RETURN COUNT(n) as count
+;
+MATCH ()-[r:CALLS]->() RETURN COUNT(r) as count
+;
+MATCH ()-[r:IMPORTS]->() RETURN COUNT(r) as count
+;
+MATCH ()-[r:EXTENDS]->() RETURN COUNT(r) as count
+;
+MATCH ()-[r:IMPLEMENTS]->() RETURN COUNT(r) as count
+;
+MATCH ()-[r:MEMBER_OF]->() RETURN COUNT(r) as count
+;
+MATCH (n) RETURN COUNT(n) as count LIMIT 1
+;
+MATCH (n) DETACH DELETE n
+;
+CREATE (:Symbol {id: 'symbol_1759082577139_1', name: 'Logger', kind: 'class', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 15, col: 256, exported: true, gitSha: ''})
+;
+CREATE (:Symbol {id: 'symbol_1759082577532_2', name: 'setLevel', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 22, col: 377, exported: false, gitSha: ''})
+;
+CREATE (:Symbol {id: 'symbol_1759082577532_3', name: 'debug', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 26, col: 442, exported: false, gitSha: ''})
+;
+CREATE (:Symbol {id: 'symbol_1759082577532_4', name: 'info', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 32, col: 573, exported: false, gitSha: ''})
+;
+CREATE (:Symbol {id: 'symbol_1759082577532_5', name: 'success', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 38, col: 702, exported: false, gitSha: ''})
+;
+CREATE (:Symbol {id: 'symbol_1759082577532_6', name: 'warn', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 44, col: 830, exported: false, gitSha: ''})
+;
+CREATE (:Symbol {id: 'symbol_1759082577532_7', name: 'error', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 50, col: 957, exported: false, gitSha: ''})
+;
+CREATE (:Symbol {id: 'symbol_1759082577532_8', name: 'progress', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 56, col: 1084, exported: false, gitSha: ''})
+;
+CREATE (:Symbol {id: 'symbol_1759082577532_9', name: 'section', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 62, col: 1213, exported: false, gitSha: ''})
+;
+CREATE (:Symbol {id: 'symbol_1759082577532_10', name: 'subsection', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 69, col: 1371, exported: false, gitSha: ''})
+;
+CREATE (:Symbol {id: 'symbol_1759082577533_11', name: 'level', kind: 'property', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 16, col: 271, exported: false, gitSha: ''})
+;
+CREATE (:Symbol {id: 'symbol_1759082577533_12', name: 'LogLevel', kind: 'enum', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 7, col: 168, exported: true, gitSha: ''})
+;
+CREATE (:Symbol {id: 'symbol_1759082577533_13', name: 'logger', kind: 'exported-var', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 77, col: 1532, exported: true, gitSha: ''})
+;
+MERGE (from:Symbol {name: 'setLevel'})
+;
+MERGE (to:Symbol {name: 'Logger'})
+;
+MATCH (from:Symbol {name: 'setLevel'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to)
+;
+MERGE (from:Symbol {name: 'debug'})
+;
+MERGE (to:Symbol {name: 'Logger'})
+;
+MATCH (from:Symbol {name: 'debug'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to)
+;
+MERGE (from:Symbol {name: 'info'})
+;
+MERGE (to:Symbol {name: 'Logger'})
+;
+MATCH (from:Symbol {name: 'info'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to)
+;
+MERGE (from:Symbol {name: 'success'})
+;
+MERGE (to:Symbol {name: 'Logger'})
+;
+MATCH (from:Symbol {name: 'success'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to)
+;
+MERGE (from:Symbol {name: 'warn'})
+;
+MERGE (to:Symbol {name: 'Logger'})
+;
+MATCH (from:Symbol {name: 'warn'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to)
+;
+MERGE (from:Symbol {name: 'error'})
+;
+MERGE (to:Symbol {name: 'Logger'})
+;
+MATCH (from:Symbol {name: 'error'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to)
+;
+MERGE (from:Symbol {name: 'progress'})
+;
+MERGE (to:Symbol {name: 'Logger'})
+;
+MATCH (from:Symbol {name: 'progress'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to)
+;
+MERGE (from:Symbol {name: 'section'})
+;
+MERGE (to:Symbol {name: 'Logger'})
+;
+MATCH (from:Symbol {name: 'section'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to)
+;
+MERGE (from:Symbol {name: 'subsection'})
+;
+MERGE (to:Symbol {name: 'Logger'})
+;
+MATCH (from:Symbol {name: 'subsection'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to)
+;
+MERGE (from:Symbol {name: 'level'})
+;
+MERGE (to:Symbol {name: 'Logger'})
+;
+MATCH (from:Symbol {name: 'level'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to)
+;
+MATCH (n:Symbol) RETURN COUNT(n) as count
+;
+MATCH (n:Type) RETURN COUNT(n) as count
+;
+MATCH (n:Import) RETURN COUNT(n) as count
+;
+MATCH (n:File) RETURN COUNT(n) as count
+;
+MATCH (n:Module) RETURN COUNT(n) as count
+;
+MATCH ()-[r:CALLS]->() RETURN COUNT(r) as count
+;
+MATCH ()-[r:IMPORTS]->() RETURN COUNT(r) as count
+;
+MATCH ()-[r:EXTENDS]->() RETURN COUNT(r) as count
+;
+MATCH ()-[r:IMPLEMENTS]->() RETURN COUNT(r) as count
+;
+MATCH ()-[r:MEMBER_OF]->() RETURN COUNT(r) as count
+;
+MATCH (s:Symbol) RETURN COUNT(s) as count;
+CREATE (:Symbol {id: 'test2', name: 'Logger', kind: 'class', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 15, col: 0, exported: true, gitSha: ''});
+MATCH (s:Symbol) RETURN COUNT(s) as count;
+MATCH (n) RETURN COUNT(n) as count LIMIT 1
+;
+MATCH (n) DETACH DELETE n
+;
+CREATE (:Symbol {id: 'symbol_1759082620592_1', name: 'Logger', kind: 'class', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 15, col: 256, exported: true, gitSha: ''})
+;
+CREATE (:Symbol {id: 'symbol_1759082621029_2', name: 'setLevel', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 22, col: 377, exported: false, gitSha: ''})
+;
+CREATE (:Symbol {id: 'symbol_1759082621029_3', name: 'debug', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 26, col: 442, exported: false, gitSha: ''})
+;
+CREATE (:Symbol {id: 'symbol_1759082621030_4', name: 'info', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 32, col: 573, exported: false, gitSha: ''})
+;
+CREATE (:Symbol {id: 'symbol_1759082621030_5', name: 'success', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 38, col: 702, exported: false, gitSha: ''})
+;
+CREATE (:Symbol {id: 'symbol_1759082621030_6', name: 'warn', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 44, col: 830, exported: false, gitSha: ''})
+;
+CREATE (:Symbol {id: 'symbol_1759082621030_7', name: 'error', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 50, col: 957, exported: false, gitSha: ''})
+;
+CREATE (:Symbol {id: 'symbol_1759082621030_8', name: 'progress', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 56, col: 1084, exported: false, gitSha: ''})
+;
+CREATE (:Symbol {id: 'symbol_1759082621030_9', name: 'section', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 62, col: 1213, exported: false, gitSha: ''})
+;
+CREATE (:Symbol {id: 'symbol_1759082621030_10', name: 'subsection', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 69, col: 1371, exported: false, gitSha: ''})
+;
+CREATE (:Symbol {id: 'symbol_1759082621030_11', name: 'level', kind: 'property', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 16, col: 271, exported: false, gitSha: ''})
+;
+CREATE (:Symbol {id: 'symbol_1759082621030_12', name: 'LogLevel', kind: 'enum', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 7, col: 168, exported: true, gitSha: ''})
+;
+CREATE (:Symbol {id: 'symbol_1759082621030_13', name: 'logger', kind: 'exported-var', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 77, col: 1532, exported: true, gitSha: ''})
+;
+MERGE (from:Symbol {name: 'setLevel'})
+;
+MERGE (to:Symbol {name: 'Logger'})
+;
+MATCH (from:Symbol {name: 'setLevel'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to)
+;
+MERGE (from:Symbol {name: 'debug'})
+;
+MERGE (to:Symbol {name: 'Logger'})
+;
+MATCH (from:Symbol {name: 'debug'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to)
+;
+MERGE (from:Symbol {name: 'info'})
+;
+MERGE (to:Symbol {name: 'Logger'})
+;
+MATCH (from:Symbol {name: 'info'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to)
+;
+MERGE (from:Symbol {name: 'success'})
+;
+MERGE (to:Symbol {name: 'Logger'})
+;
+MATCH (from:Symbol {name: 'success'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to)
+;
+MERGE (from:Symbol {name: 'warn'})
+;
+MERGE (to:Symbol {name: 'Logger'})
+;
+MATCH (from:Symbol {name: 'warn'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to)
+;
+MERGE (from:Symbol {name: 'error'})
+;
+MERGE (to:Symbol {name: 'Logger'})
+;
+MATCH (from:Symbol {name: 'error'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to)
+;
+MERGE (from:Symbol {name: 'progress'})
+;
+MERGE (to:Symbol {name: 'Logger'})
+;
+MATCH (from:Symbol {name: 'progress'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to)
+;
+MERGE (from:Symbol {name: 'section'})
+;
+MERGE (to:Symbol {name: 'Logger'})
+;
+MATCH (from:Symbol {name: 'section'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to)
+;
+MERGE (from:Symbol {name: 'subsection'})
+;
+MERGE (to:Symbol {name: 'Logger'})
+;
+MATCH (from:Symbol {name: 'subsection'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to)
+;
+MERGE (from:Symbol {name: 'level'})
+;
+MERGE (to:Symbol {name: 'Logger'})
+;
+MATCH (from:Symbol {name: 'level'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to)
+;
+CREATE (:Symbol {id: 'symbol_1759082622201_14', name: 'ConfigManager', kind: 'class', file: '/workspaces/mastra-context-network/scripts/utils/config.ts', line: 32, col: 567, exported: true, gitSha: ''})
+;
+CREATE (:Symbol {id: 'symbol_1759082622424_15', name: 'loadConfig', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/config.ts', line: 39, col: 676, exported: false, gitSha: ''})
+;
+CREATE (:Symbol {id: 'symbol_1759082622424_16', name: 'get', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/config.ts', line: 68, col: 1960, exported: false, gitSha: ''})
+;
+CREATE (:Symbol {id: 'symbol_1759082622424_17', name: 'getAll', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/config.ts', line: 72, col: 2045, exported: false, gitSha: ''})
+;
+CREATE (:Symbol {id: 'symbol_1759082622424_18', name: 'set', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/config.ts', line: 76, col: 2102, exported: false, gitSha: ''})
+;
+CREATE (:Symbol {id: 'symbol_1759082622424_19', name: 'reload', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/config.ts', line: 80, col: 2201, exported: false, gitSha: ''})
+;
+CREATE (:Symbol {id: 'symbol_1759082622424_20', name: 'config', kind: 'property', file: '/workspaces/mastra-context-network/scripts/utils/config.ts', line: 33, col: 589, exported: false, gitSha: ''})
+;
+CREATE (:Symbol {id: 'symbol_1759082622425_21', name: 'Config', kind: 'interface', file: '/workspaces/mastra-context-network/scripts/utils/config.ts', line: 5, col: 45, exported: true, gitSha: ''})
+;
+CREATE (:Symbol {id: 'symbol_1759082622425_22', name: 'config', kind: 'exported-var', file: '/workspaces/mastra-context-network/scripts/utils/config.ts', line: 86, col: 2293, exported: true, gitSha: ''})
+;
+CREATE (:Type {id: 'type_1759082622425_23', name: 'Config', primitive: false, generic: false, nullable: false, readonly: false})
+;
+MERGE (from:Symbol {name: 'loadConfig'})
+;
+MERGE (to:Symbol {name: 'ConfigManager'})
+;
+MATCH (from:Symbol {name: 'loadConfig'}), (to:Symbol {name: 'ConfigManager'}) CREATE (from)-[:MEMBER_OF]->(to)
+;
+MERGE (from:Symbol {name: 'get'})
+;
+MERGE (to:Symbol {name: 'ConfigManager'})
+;
+MATCH (from:Symbol {name: 'get'}), (to:Symbol {name: 'ConfigManager'}) CREATE (from)-[:MEMBER_OF]->(to)
+;
+MERGE (from:Symbol {name: 'getAll'})
+;
+MERGE (to:Symbol {name: 'ConfigManager'})
+;
+MATCH (from:Symbol {name: 'getAll'}), (to:Symbol {name: 'ConfigManager'}) CREATE (from)-[:MEMBER_OF]->(to)
+;
+MERGE (from:Symbol {name: 'set'})
+;
+MERGE (to:Symbol {name: 'ConfigManager'})
+;
+MATCH (from:Symbol {name: 'set'}), (to:Symbol {name: 'ConfigManager'}) CREATE (from)-[:MEMBER_OF]->(to)
+;
+MERGE (from:Symbol {name: 'reload'})
+;
+MERGE (to:Symbol {name: 'ConfigManager'})
+;
+MATCH (from:Symbol {name: 'reload'}), (to:Symbol {name: 'ConfigManager'}) CREATE (from)-[:MEMBER_OF]->(to)
+;
+MERGE (from:Symbol {name: 'config'})
+;
+MERGE (to:Symbol {name: 'ConfigManager'})
+;
+MATCH (from:Symbol {name: 'config'}), (to:Symbol {name: 'ConfigManager'}) CREATE (from)-[:MEMBER_OF]->(to)
+;
+MATCH (n:Symbol) RETURN COUNT(n) as count
+;
+MATCH (n:Type) RETURN COUNT(n) as count
+;
+MATCH (n:Import) RETURN COUNT(n) as count
+;
+MATCH (n:File) RETURN COUNT(n) as count
+;
+MATCH (n:Module) RETURN COUNT(n) as count
+;
+MATCH ()-[r:CALLS]->() RETURN COUNT(r) as count
+;
+MATCH ()-[r:IMPORTS]->() RETURN COUNT(r) as count
+;
+MATCH ()-[r:EXTENDS]->() RETURN COUNT(r) as count
+;
+MATCH ()-[r:IMPLEMENTS]->() RETURN COUNT(r) as count
+;
+MATCH ()-[r:MEMBER_OF]->() RETURN COUNT(r) as count
+;
+MATCH (s:Symbol) RETURN COUNT(s) as count;
+DELETE FROM Symbol WHERE true;
+MATCH (s:Symbol) DETACH DELETE s;
+MATCH (n) RETURN COUNT(n) as count LIMIT 1
+;
+CREATE (:Symbol {id: 'symbol_1759082656578_1', name: 'Logger', kind: 'class', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 15, col: 256, exported: true, gitSha: ''})
+;
+CREATE (:Symbol {id: 'symbol_1759082656976_2', name: 'setLevel', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 22, col: 377, exported: false, gitSha: ''})
+;
+CREATE (:Symbol {id: 'symbol_1759082656976_3', name: 'debug', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 26, col: 442, exported: false, gitSha: ''})
+;
+CREATE (:Symbol {id: 'symbol_1759082656976_4', name: 'info', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 32, col: 573, exported: false, gitSha: ''})
+;
+CREATE (:Symbol {id: 'symbol_1759082656976_5', name: 'success', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 38, col: 702, exported: false, gitSha: ''})
+;
+CREATE (:Symbol {id: 'symbol_1759082656976_6', name: 'warn', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 44, col: 830, exported: false, gitSha: ''})
+;
+CREATE (:Symbol {id: 'symbol_1759082656976_7', name: 'error', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 50, col: 957, exported: false, gitSha: ''})
+;
+CREATE (:Symbol {id: 'symbol_1759082656976_8', name: 'progress', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 56, col: 1084, exported: false, gitSha: ''})
+;
+CREATE (:Symbol {id: 'symbol_1759082656976_9', name: 'section', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 62, col: 1213, exported: false, gitSha: ''})
+;
+CREATE (:Symbol {id: 'symbol_1759082656976_10', name: 'subsection', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 69, col: 1371, exported: false, gitSha: ''})
+;
+CREATE (:Symbol {id: 'symbol_1759082656977_11', name: 'level', kind: 'property', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 16, col: 271, exported: false, gitSha: ''})
+;
+CREATE (:Symbol {id: 'symbol_1759082656977_12', name: 'LogLevel', kind: 'enum', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 7, col: 168, exported: true, gitSha: ''})
+;
+CREATE (:Symbol {id: 'symbol_1759082656977_13', name: 'logger', kind: 'exported-var', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 77, col: 1532, exported: true, gitSha: ''})
+;
+MERGE (from:Symbol {name: 'setLevel'})
+;
+MERGE (to:Symbol {name: 'Logger'})
+;
+MATCH (from:Symbol {name: 'setLevel'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to)
+;
+MERGE (from:Symbol {name: 'debug'})
+;
+MERGE (to:Symbol {name: 'Logger'})
+;
+MATCH (from:Symbol {name: 'debug'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to)
+;
+MERGE (from:Symbol {name: 'info'})
+;
+MERGE (to:Symbol {name: 'Logger'})
+;
+MATCH (from:Symbol {name: 'info'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to)
+;
+MERGE (from:Symbol {name: 'success'})
+;
+MERGE (to:Symbol {name: 'Logger'})
+;
+MATCH (from:Symbol {name: 'success'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to)
+;
+MERGE (from:Symbol {name: 'warn'})
+;
+MERGE (to:Symbol {name: 'Logger'})
+;
+MATCH (from:Symbol {name: 'warn'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to)
+;
+MERGE (from:Symbol {name: 'error'})
+;
+MERGE (to:Symbol {name: 'Logger'})
+;
+MATCH (from:Symbol {name: 'error'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to)
+;
+MERGE (from:Symbol {name: 'progress'})
+;
+MERGE (to:Symbol {name: 'Logger'})
+;
+MATCH (from:Symbol {name: 'progress'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to)
+;
+MERGE (from:Symbol {name: 'section'})
+;
+MERGE (to:Symbol {name: 'Logger'})
+;
+MATCH (from:Symbol {name: 'section'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to)
+;
+MERGE (from:Symbol {name: 'subsection'})
+;
+MERGE (to:Symbol {name: 'Logger'})
+;
+MATCH (from:Symbol {name: 'subsection'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to)
+;
+MERGE (from:Symbol {name: 'level'})
+;
+MERGE (to:Symbol {name: 'Logger'})
+;
+MATCH (from:Symbol {name: 'level'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to)
+;
+MATCH (n:Symbol) RETURN COUNT(n) as count
+;
+MATCH (n:Type) RETURN COUNT(n) as count
+;
+MATCH (n:Import) RETURN COUNT(n) as count
+;
+MATCH (n:File) RETURN COUNT(n) as count
+;
+MATCH (n:Module) RETURN COUNT(n) as count
+;
+MATCH ()-[r:CALLS]->() RETURN COUNT(r) as count
+;
+MATCH ()-[r:IMPORTS]->() RETURN COUNT(r) as count
+;
+MATCH ()-[r:EXTENDS]->() RETURN COUNT(r) as count
+;
+MATCH ()-[r:IMPLEMENTS]->() RETURN COUNT(r) as count
+;
+MATCH ()-[r:MEMBER_OF]->() RETURN COUNT(r) as count
+;
+MATCH (s:Symbol) RETURN COUNT(s) as count;
+CREATE (:Symbol {id: 'directtest', name: 'DirectTest', kind: 'function', file: 'test.ts', line: 1, col: 1, exported: true, gitSha: ''});
+MATCH (s:Symbol) WHERE s.id = 'directtest' RETURN s.name;
+MATCH (n) RETURN COUNT(n) as count LIMIT 1
+;
+CREATE (:Symbol {id: 'testsym1', name: 'TestSymbol', kind: 'function', file: 'test.ts', line: 10, col: 5, exported: true, gitSha: ''})
+;
+MATCH (s:Symbol) WHERE s.id = 'testsym1' RETURN s.name as name;
+MATCH (n) RETURN COUNT(n) as count LIMIT 1
+;
+CREATE (:Symbol {id: 'testsym1', name: 'TestSymbol', kind: 'function', file: 'test.ts', line: 10, col: 5, exported: true, gitSha: ''})
+;
+MATCH (s:Symbol) WHERE s.id = 'testsym1' RETURN s.name as name;
+MATCH (s:Symbol) WHERE s.id = 'testsym1' RETURN s;
+MATCH (n) RETURN COUNT(n) as count LIMIT 1
+;
+CREATE (:Symbol {id: 'testsym1', name: 'TestSymbol', kind: 'function', file: 'test.ts', line: 10, col: 5, exported: true, gitSha: ''})
+;
+MATCH (s:Symbol) WHERE s.id = 'testsym1' RETURN s.name as name;
+MATCH (n) RETURN COUNT(n) as count LIMIT 1
+;
+CREATE (:Symbol {id: 'testsym1', name: 'TestSymbol', kind: 'function', file: 'test.ts', line: 10, col: 5, exported: true, gitSha: ''})
+;
+MATCH (s:Symbol) WHERE s.id = 'testsym1' RETURN s.name as name;
+CREATE (:Symbol {id: 'testsym1', name: 'TestSymbol', kind: 'function', file: 'test.ts', line: 10, col: 5, exported: true, gitSha: ''});
+MATCH (s:Symbol) WHERE s.id = 'testsym1' RETURN s.name;
+MATCH (s:Symbol) DETACH DELETE s;
+MATCH (n) RETURN COUNT(n) as count LIMIT 1
+;
+CREATE (:Symbol {id: 'testsym1', name: 'TestSymbol', kind: 'function', file: 'test.ts', line: 10, col: 5, exported: true, gitSha: ''});
+MATCH (s:Symbol) WHERE s.id = 'testsym1' RETURN s.name as name;
+MATCH (n) RETURN COUNT(n) as count LIMIT 1
+;
+CREATE (:Symbol {id: 'testsym1', name: 'TestSymbol', kind: 'function', file: 'test.ts', line: 10, col: 5, exported: true, gitSha: ''});
+MATCH (s:Symbol) WHERE s.id = 'testsym1' RETURN s.name as name;
+MATCH (n) RETURN COUNT(n) as count LIMIT 1
+;
+CREATE (:Symbol {id: 'testsym1', name: 'TestSymbol', kind: 'function', file: 'test.ts', line: 10, col: 5, exported: true, gitSha: ''});
+MATCH (s:Symbol) WHERE s.id = 'testsym1' RETURN s.name as name;
+CREATE (:Symbol {id: 'manual2', name: 'Manual2', kind: 'function', file: 'test.ts', line: 1, col: 1, exported: true, gitSha: ''});
+MATCH (s:Symbol) WHERE s.id = 'manual2' RETURN s.name;
+CREATE (:Symbol {id: 'direct1', name: 'DirectTest', kind: 'function', file: 'test.ts', line: 1, col: 1, exported: true, gitSha: ''});
+MATCH (s:Symbol) WHERE s.id = 'direct1' RETURN s.name as name;
+CREATE (:Symbol {id: 'temptest', name: 'TempTest', kind: 'class', file: 'temp.ts', line: 5, col: 10, exported: false, gitSha: 'abc'});
+MATCH (s:Symbol) WHERE s.id = 'temptest' RETURN s.name as name;
+MATCH (s:Symbol) DETACH DELETE s;
+CREATE (:Symbol {id: 'direct1', name: 'DirectTest', kind: 'function', file: 'test.ts', line: 1, col: 1, exported: true, gitSha: ''});
+MATCH (s:Symbol) WHERE s.id = 'direct1' RETURN s.name as name;
+CREATE (:Symbol {id: 'temptest', name: 'TempTest', kind: 'class', file: 'temp.ts', line: 5, col: 10, exported: false, gitSha: 'abc'});
+MATCH (s:Symbol) WHERE s.id = 'temptest' RETURN s.name as name;
+MATCH (n) RETURN COUNT(n) as count LIMIT 1
+;
+CREATE (:Symbol {id: 'testsym1', name: 'TestSymbol', kind: 'function', file: 'test.ts', line: 10, col: 5, exported: true, gitSha: ''});
+MATCH (s:Symbol) WHERE s.id = 'testsym1' RETURN s.name as name;
+MATCH (n) RETURN COUNT(n) as count LIMIT 1
+;
+MATCH (n) DETACH DELETE n
+;
+CREATE (:Symbol {id: 'symbol_1759198399847_1', name: 'Logger', kind: 'class', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 15, col: 256, exported: true, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198400523_2', name: 'setLevel', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 22, col: 377, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198400523_3', name: 'debug', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 26, col: 442, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198400523_4', name: 'info', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 32, col: 573, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198400524_5', name: 'success', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 38, col: 702, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198400524_6', name: 'warn', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 44, col: 830, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198400524_7', name: 'error', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 50, col: 957, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198400524_8', name: 'progress', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 56, col: 1084, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198400524_9', name: 'section', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 62, col: 1213, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198400524_10', name: 'subsection', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 69, col: 1371, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198400524_11', name: 'level', kind: 'property', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 16, col: 271, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198400524_12', name: 'LogLevel', kind: 'enum', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 7, col: 168, exported: true, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198400524_13', name: 'logger', kind: 'exported-var', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 77, col: 1532, exported: true, gitSha: ''});
+MERGE (from:Symbol {name: 'setLevel'});
+MERGE (to:Symbol {name: 'Logger'});
+MATCH (from:Symbol {name: 'setLevel'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to);
+MERGE (from:Symbol {name: 'debug'});
+MERGE (to:Symbol {name: 'Logger'});
+MATCH (from:Symbol {name: 'debug'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to);
+MERGE (from:Symbol {name: 'info'});
+MERGE (to:Symbol {name: 'Logger'});
+MATCH (from:Symbol {name: 'info'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to);
+MERGE (from:Symbol {name: 'success'});
+MERGE (to:Symbol {name: 'Logger'});
+MATCH (from:Symbol {name: 'success'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to);
+MERGE (from:Symbol {name: 'warn'});
+MERGE (to:Symbol {name: 'Logger'});
+MATCH (from:Symbol {name: 'warn'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to);
+MERGE (from:Symbol {name: 'error'});
+MERGE (to:Symbol {name: 'Logger'});
+MATCH (from:Symbol {name: 'error'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to);
+MERGE (from:Symbol {name: 'progress'});
+MERGE (to:Symbol {name: 'Logger'});
+MATCH (from:Symbol {name: 'progress'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to);
+MERGE (from:Symbol {name: 'section'});
+MERGE (to:Symbol {name: 'Logger'});
+MATCH (from:Symbol {name: 'section'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to);
+MERGE (from:Symbol {name: 'subsection'});
+MERGE (to:Symbol {name: 'Logger'});
+MATCH (from:Symbol {name: 'subsection'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to);
+MERGE (from:Symbol {name: 'level'});
+MERGE (to:Symbol {name: 'Logger'});
+MATCH (from:Symbol {name: 'level'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to);
+CREATE (:Symbol {id: 'symbol_1759198403012_14', name: 'ConfigManager', kind: 'class', file: '/workspaces/mastra-context-network/scripts/utils/config.ts', line: 32, col: 567, exported: true, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198403152_15', name: 'loadConfig', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/config.ts', line: 39, col: 676, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198403152_16', name: 'get', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/config.ts', line: 78, col: 2374, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198403152_17', name: 'getAll', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/config.ts', line: 82, col: 2459, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198403152_18', name: 'set', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/config.ts', line: 86, col: 2516, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198403152_19', name: 'reload', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/config.ts', line: 90, col: 2615, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198403152_20', name: 'config', kind: 'property', file: '/workspaces/mastra-context-network/scripts/utils/config.ts', line: 33, col: 589, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198403153_21', name: 'Config', kind: 'interface', file: '/workspaces/mastra-context-network/scripts/utils/config.ts', line: 5, col: 45, exported: true, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198403153_22', name: 'config', kind: 'exported-var', file: '/workspaces/mastra-context-network/scripts/utils/config.ts', line: 96, col: 2707, exported: true, gitSha: ''});
+CREATE (:Type {id: 'type_1759198403153_23', name: 'Config', primitive: false, generic: false, nullable: false, readonly: false});
+MERGE (from:Symbol {name: 'loadConfig'});
+MERGE (to:Symbol {name: 'ConfigManager'});
+MATCH (from:Symbol {name: 'loadConfig'}), (to:Symbol {name: 'ConfigManager'}) CREATE (from)-[:MEMBER_OF]->(to);
+MERGE (from:Symbol {name: 'get'});
+MERGE (to:Symbol {name: 'ConfigManager'});
+MATCH (from:Symbol {name: 'get'}), (to:Symbol {name: 'ConfigManager'}) CREATE (from)-[:MEMBER_OF]->(to);
+MERGE (from:Symbol {name: 'getAll'});
+MERGE (to:Symbol {name: 'ConfigManager'});
+MATCH (from:Symbol {name: 'getAll'}), (to:Symbol {name: 'ConfigManager'}) CREATE (from)-[:MEMBER_OF]->(to);
+MERGE (from:Symbol {name: 'set'});
+MERGE (to:Symbol {name: 'ConfigManager'});
+MATCH (from:Symbol {name: 'set'}), (to:Symbol {name: 'ConfigManager'}) CREATE (from)-[:MEMBER_OF]->(to);
+MERGE (from:Symbol {name: 'reload'});
+MERGE (to:Symbol {name: 'ConfigManager'});
+MATCH (from:Symbol {name: 'reload'}), (to:Symbol {name: 'ConfigManager'}) CREATE (from)-[:MEMBER_OF]->(to);
+MERGE (from:Symbol {name: 'config'});
+MERGE (to:Symbol {name: 'ConfigManager'});
+MATCH (from:Symbol {name: 'config'}), (to:Symbol {name: 'ConfigManager'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (n:Symbol) RETURN COUNT(n) as count
+;
+MATCH (n:Type) RETURN COUNT(n) as count
+;
+MATCH (n:Import) RETURN COUNT(n) as count
+;
+MATCH (n:File) RETURN COUNT(n) as count
+;
+MATCH (n:Module) RETURN COUNT(n) as count
+;
+MATCH ()-[r:CALLS]->() RETURN COUNT(r) as count
+;
+MATCH ()-[r:IMPORTS]->() RETURN COUNT(r) as count
+;
+MATCH ()-[r:EXTENDS]->() RETURN COUNT(r) as count
+;
+MATCH ()-[r:IMPLEMENTS]->() RETURN COUNT(r) as count
+;
+MATCH ()-[r:MEMBER_OF]->() RETURN COUNT(r) as count
+;
+MATCH (n) RETURN COUNT(n) as count LIMIT 1
+;
+MATCH (n) DETACH DELETE n
+;
+CREATE (:Symbol {id: 'symbol_1759198412665_2', name: 'commandExists', kind: 'function', file: '/workspaces/mastra-context-network/scripts/doctor.ts', line: 18, col: 450, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198413020_3', name: 'main', kind: 'function', file: '/workspaces/mastra-context-network/scripts/doctor.ts', line: 231, col: 5575, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198413021_4', name: 'getCategoryEmoji', kind: 'function', file: '/workspaces/mastra-context-network/scripts/doctor.ts', line: 292, col: 7390, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198413021_5', name: 'getCategoryName', kind: 'function', file: '/workspaces/mastra-context-network/scripts/doctor.ts', line: 302, col: 7628, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198413021_6', name: 'Check', kind: 'interface', file: '/workspaces/mastra-context-network/scripts/doctor.ts', line: 11, col: 264, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198413021_7', name: 'checks', kind: 'variable', file: '/workspaces/mastra-context-network/scripts/doctor.ts', line: 39, col: 924, exported: false, gitSha: ''});
+CREATE (:Type {id: 'type_1759198413021_8', name: 'Check', primitive: false, generic: false, nullable: false, readonly: false});
+MERGE (from:Symbol {name: 'main'});
+MERGE (to:Symbol {name: 'bold'});
+MATCH (from:Symbol {name: 'main'}), (to:Symbol {name: 'bold'}) CREATE (from)-[:CALLS]->(to);
+MERGE (from:Symbol {name: 'main'});
+MERGE (to:Symbol {name: 'dim'});
+MATCH (from:Symbol {name: 'main'}), (to:Symbol {name: 'dim'}) CREATE (from)-[:CALLS]->(to);
+MERGE (from:Symbol {name: 'main'});
+MERGE (to:Symbol {name: 'bold'});
+MATCH (from:Symbol {name: 'main'}), (to:Symbol {name: 'bold'}) CREATE (from)-[:CALLS]->(to);
+MERGE (from:Symbol {name: 'main'});
+MERGE (to:Symbol {name: 'getCategoryEmoji'});
+MATCH (from:Symbol {name: 'main'}), (to:Symbol {name: 'getCategoryEmoji'}) CREATE (from)-[:CALLS]->(to);
+MERGE (from:Symbol {name: 'main'});
+MERGE (to:Symbol {name: 'getCategoryName'});
+MATCH (from:Symbol {name: 'main'}), (to:Symbol {name: 'getCategoryName'}) CREATE (from)-[:CALLS]->(to);
+MERGE (from:Symbol {name: 'main'});
+MERGE (to:Symbol {name: 'green'});
+MATCH (from:Symbol {name: 'main'}), (to:Symbol {name: 'green'}) CREATE (from)-[:CALLS]->(to);
+MERGE (from:Symbol {name: 'main'});
+MERGE (to:Symbol {name: 'dim'});
+MATCH (from:Symbol {name: 'main'}), (to:Symbol {name: 'dim'}) CREATE (from)-[:CALLS]->(to);
+MERGE (from:Symbol {name: 'main'});
+MERGE (to:Symbol {name: 'dim'});
+MATCH (from:Symbol {name: 'main'}), (to:Symbol {name: 'dim'}) CREATE (from)-[:CALLS]->(to);
+MERGE (from:Symbol {name: 'main'});
+MERGE (to:Symbol {name: 'red'});
+MATCH (from:Symbol {name: 'main'}), (to:Symbol {name: 'red'}) CREATE (from)-[:CALLS]->(to);
+MERGE (from:Symbol {name: 'main'});
+MERGE (to:Symbol {name: 'red'});
+MATCH (from:Symbol {name: 'main'}), (to:Symbol {name: 'red'}) CREATE (from)-[:CALLS]->(to);
+MERGE (from:Symbol {name: 'main'});
+MERGE (to:Symbol {name: 'dim'});
+MATCH (from:Symbol {name: 'main'}), (to:Symbol {name: 'dim'}) CREATE (from)-[:CALLS]->(to);
+MERGE (from:Symbol {name: 'main'});
+MERGE (to:Symbol {name: 'yellow'});
+MATCH (from:Symbol {name: 'main'}), (to:Symbol {name: 'yellow'}) CREATE (from)-[:CALLS]->(to);
+MERGE (from:Symbol {name: 'main'});
+MERGE (to:Symbol {name: 'green'});
+MATCH (from:Symbol {name: 'main'}), (to:Symbol {name: 'green'}) CREATE (from)-[:CALLS]->(to);
+MERGE (from:Symbol {name: 'main'});
+MERGE (to:Symbol {name: 'dim'});
+MATCH (from:Symbol {name: 'main'}), (to:Symbol {name: 'dim'}) CREATE (from)-[:CALLS]->(to);
+MERGE (from:Symbol {name: 'main'});
+MERGE (to:Symbol {name: 'bold'});
+MATCH (from:Symbol {name: 'main'}), (to:Symbol {name: 'bold'}) CREATE (from)-[:CALLS]->(to);
+MERGE (from:Symbol {name: 'main'});
+MERGE (to:Symbol {name: 'bold'});
+MATCH (from:Symbol {name: 'main'}), (to:Symbol {name: 'bold'}) CREATE (from)-[:CALLS]->(to);
+MERGE (from:Symbol {name: 'main'});
+MERGE (to:Symbol {name: 'bold'});
+MATCH (from:Symbol {name: 'main'}), (to:Symbol {name: 'bold'}) CREATE (from)-[:CALLS]->(to);
+MERGE (from:Symbol {name: 'main'});
+MERGE (to:Symbol {name: 'bold'});
+MATCH (from:Symbol {name: 'main'}), (to:Symbol {name: 'bold'}) CREATE (from)-[:CALLS]->(to);
+CREATE (:Symbol {id: 'symbol_1759198415346_11', name: 'main', kind: 'function', file: '/workspaces/mastra-context-network/scripts/init.ts', line: 274, col: 7421, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198415468_12', name: 'InitStep', kind: 'interface', file: '/workspaces/mastra-context-network/scripts/init.ts', line: 11, col: 292, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198415468_13', name: 'steps', kind: 'variable', file: '/workspaces/mastra-context-network/scripts/init.ts', line: 18, col: 417, exported: false, gitSha: ''});
+CREATE (:Type {id: 'type_1759198415468_14', name: 'InitStep', primitive: false, generic: false, nullable: false, readonly: false});
+MERGE (from:Symbol {name: 'main'});
+MERGE (to:Symbol {name: 'bold'});
+MATCH (from:Symbol {name: 'main'}), (to:Symbol {name: 'bold'}) CREATE (from)-[:CALLS]->(to);
+MERGE (from:Symbol {name: 'main'});
+MERGE (to:Symbol {name: 'green'});
+MATCH (from:Symbol {name: 'main'}), (to:Symbol {name: 'green'}) CREATE (from)-[:CALLS]->(to);
+MERGE (from:Symbol {name: 'main'});
+MERGE (to:Symbol {name: 'yellow'});
+MATCH (from:Symbol {name: 'main'}), (to:Symbol {name: 'yellow'}) CREATE (from)-[:CALLS]->(to);
+MERGE (from:Symbol {name: 'main'});
+MERGE (to:Symbol {name: 'green'});
+MATCH (from:Symbol {name: 'main'}), (to:Symbol {name: 'green'}) CREATE (from)-[:CALLS]->(to);
+MERGE (from:Symbol {name: 'main'});
+MERGE (to:Symbol {name: 'red'});
+MATCH (from:Symbol {name: 'main'}), (to:Symbol {name: 'red'}) CREATE (from)-[:CALLS]->(to);
+MERGE (from:Symbol {name: 'main'});
+MERGE (to:Symbol {name: 'red'});
+MATCH (from:Symbol {name: 'main'}), (to:Symbol {name: 'red'}) CREATE (from)-[:CALLS]->(to);
+MERGE (from:Symbol {name: 'main'});
+MERGE (to:Symbol {name: 'red'});
+MATCH (from:Symbol {name: 'main'}), (to:Symbol {name: 'red'}) CREATE (from)-[:CALLS]->(to);
+MERGE (from:Symbol {name: 'main'});
+MERGE (to:Symbol {name: 'green'});
+MATCH (from:Symbol {name: 'main'}), (to:Symbol {name: 'green'}) CREATE (from)-[:CALLS]->(to);
+MERGE (from:Symbol {name: 'main'});
+MERGE (to:Symbol {name: 'bold'});
+MATCH (from:Symbol {name: 'main'}), (to:Symbol {name: 'bold'}) CREATE (from)-[:CALLS]->(to);
+MERGE (from:Symbol {name: 'main'});
+MERGE (to:Symbol {name: 'bold'});
+MATCH (from:Symbol {name: 'main'}), (to:Symbol {name: 'bold'}) CREATE (from)-[:CALLS]->(to);
+MERGE (from:Symbol {name: 'main'});
+MERGE (to:Symbol {name: 'bold'});
+MATCH (from:Symbol {name: 'main'}), (to:Symbol {name: 'bold'}) CREATE (from)-[:CALLS]->(to);
+MERGE (from:Symbol {name: 'main'});
+MERGE (to:Symbol {name: 'bold'});
+MATCH (from:Symbol {name: 'main'}), (to:Symbol {name: 'bold'}) CREATE (from)-[:CALLS]->(to);
+CREATE (:Symbol {id: 'symbol_1759198417020_21', name: 'initializeKuzu', kind: 'function', file: '/workspaces/mastra-context-network/scripts/init-databases.ts', line: 24, col: 635, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198417166_22', name: 'initializeDuckDB', kind: 'function', file: '/workspaces/mastra-context-network/scripts/init-databases.ts', line: 166, col: 4492, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198417166_23', name: 'verifyDatabases', kind: 'function', file: '/workspaces/mastra-context-network/scripts/init-databases.ts', line: 316, col: 8671, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198417166_24', name: 'main', kind: 'function', file: '/workspaces/mastra-context-network/scripts/init-databases.ts', line: 367, col: 10049, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198417166_25', name: 'DatabaseInitResult', kind: 'interface', file: '/workspaces/mastra-context-network/scripts/init-databases.ts', line: 14, col: 430, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198417167_26', name: 'KUZU_DB_PATH', kind: 'variable', file: '/workspaces/mastra-context-network/scripts/init-databases.ts', line: 11, col: 282, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198417167_27', name: 'DUCKDB_PATH', kind: 'variable', file: '/workspaces/mastra-context-network/scripts/init-databases.ts', line: 12, col: 356, exported: false, gitSha: ''});
+CREATE (:Type {id: 'type_1759198417167_28', name: 'DatabaseInitResult', primitive: false, generic: false, nullable: false, readonly: false});
+MERGE (from:Symbol {name: 'initializeKuzu'});
+MERGE (to:Symbol {name: 'bold'});
+MATCH (from:Symbol {name: 'initializeKuzu'}), (to:Symbol {name: 'bold'}) CREATE (from)-[:CALLS]->(to);
+MERGE (from:Symbol {name: 'initializeKuzu'});
+MERGE (to:Symbol {name: 'ensureDir'});
+MATCH (from:Symbol {name: 'initializeKuzu'}), (to:Symbol {name: 'ensureDir'}) CREATE (from)-[:CALLS]->(to);
+MERGE (from:Symbol {name: 'initializeKuzu'});
+MERGE (to:Symbol {name: 'green'});
+MATCH (from:Symbol {name: 'initializeKuzu'}), (to:Symbol {name: 'green'}) CREATE (from)-[:CALLS]->(to);
+MERGE (from:Symbol {name: 'initializeKuzu'});
+MERGE (to:Symbol {name: 'red'});
+MATCH (from:Symbol {name: 'initializeKuzu'}), (to:Symbol {name: 'red'}) CREATE (from)-[:CALLS]->(to);
+MERGE (from:Symbol {name: 'initializeDuckDB'});
+MERGE (to:Symbol {name: 'bold'});
+MATCH (from:Symbol {name: 'initializeDuckDB'}), (to:Symbol {name: 'bold'}) CREATE (from)-[:CALLS]->(to);
+MERGE (from:Symbol {name: 'initializeDuckDB'});
+MERGE (to:Symbol {name: 'ensureDir'});
+MATCH (from:Symbol {name: 'initializeDuckDB'}), (to:Symbol {name: 'ensureDir'}) CREATE (from)-[:CALLS]->(to);
+MERGE (from:Symbol {name: 'initializeDuckDB'});
+MERGE (to:Symbol {name: 'green'});
+MATCH (from:Symbol {name: 'initializeDuckDB'}), (to:Symbol {name: 'green'}) CREATE (from)-[:CALLS]->(to);
+MERGE (from:Symbol {name: 'initializeDuckDB'});
+MERGE (to:Symbol {name: 'red'});
+MATCH (from:Symbol {name: 'initializeDuckDB'}), (to:Symbol {name: 'red'}) CREATE (from)-[:CALLS]->(to);
+MERGE (from:Symbol {name: 'verifyDatabases'});
+MERGE (to:Symbol {name: 'bold'});
+MATCH (from:Symbol {name: 'verifyDatabases'}), (to:Symbol {name: 'bold'}) CREATE (from)-[:CALLS]->(to);
+MERGE (from:Symbol {name: 'verifyDatabases'});
+MERGE (to:Symbol {name: 'green'});
+MATCH (from:Symbol {name: 'verifyDatabases'}), (to:Symbol {name: 'green'}) CREATE (from)-[:CALLS]->(to);
+MERGE (from:Symbol {name: 'verifyDatabases'});
+MERGE (to:Symbol {name: 'red'});
+MATCH (from:Symbol {name: 'verifyDatabases'}), (to:Symbol {name: 'red'}) CREATE (from)-[:CALLS]->(to);
+MERGE (from:Symbol {name: 'verifyDatabases'});
+MERGE (to:Symbol {name: 'green'});
+MATCH (from:Symbol {name: 'verifyDatabases'}), (to:Symbol {name: 'green'}) CREATE (from)-[:CALLS]->(to);
+MERGE (from:Symbol {name: 'verifyDatabases'});
+MERGE (to:Symbol {name: 'red'});
+MATCH (from:Symbol {name: 'verifyDatabases'}), (to:Symbol {name: 'red'}) CREATE (from)-[:CALLS]->(to);
+MERGE (from:Symbol {name: 'main'});
+MERGE (to:Symbol {name: 'bold'});
+MATCH (from:Symbol {name: 'main'}), (to:Symbol {name: 'bold'}) CREATE (from)-[:CALLS]->(to);
+MERGE (from:Symbol {name: 'main'});
+MERGE (to:Symbol {name: 'green'});
+MATCH (from:Symbol {name: 'main'}), (to:Symbol {name: 'green'}) CREATE (from)-[:CALLS]->(to);
+MERGE (from:Symbol {name: 'main'});
+MERGE (to:Symbol {name: 'exists'});
+MATCH (from:Symbol {name: 'main'}), (to:Symbol {name: 'exists'}) CREATE (from)-[:CALLS]->(to);
+MERGE (from:Symbol {name: 'main'});
+MERGE (to:Symbol {name: 'exists'});
+MATCH (from:Symbol {name: 'main'}), (to:Symbol {name: 'exists'}) CREATE (from)-[:CALLS]->(to);
+MERGE (from:Symbol {name: 'main'});
+MERGE (to:Symbol {name: 'yellow'});
+MATCH (from:Symbol {name: 'main'}), (to:Symbol {name: 'yellow'}) CREATE (from)-[:CALLS]->(to);
+MERGE (from:Symbol {name: 'main'});
+MERGE (to:Symbol {name: 'yellow'});
+MATCH (from:Symbol {name: 'main'}), (to:Symbol {name: 'yellow'}) CREATE (from)-[:CALLS]->(to);
+MERGE (from:Symbol {name: 'main'});
+MERGE (to:Symbol {name: 'yellow'});
+MATCH (from:Symbol {name: 'main'}), (to:Symbol {name: 'yellow'}) CREATE (from)-[:CALLS]->(to);
+MERGE (from:Symbol {name: 'main'});
+MERGE (to:Symbol {name: 'prompt'});
+MATCH (from:Symbol {name: 'main'}), (to:Symbol {name: 'prompt'}) CREATE (from)-[:CALLS]->(to);
+MERGE (from:Symbol {name: 'main'});
+MERGE (to:Symbol {name: 'initializeKuzu'});
+MATCH (from:Symbol {name: 'main'}), (to:Symbol {name: 'initializeKuzu'}) CREATE (from)-[:CALLS]->(to);
+MERGE (from:Symbol {name: 'main'});
+MERGE (to:Symbol {name: 'initializeDuckDB'});
+MATCH (from:Symbol {name: 'main'}), (to:Symbol {name: 'initializeDuckDB'}) CREATE (from)-[:CALLS]->(to);
+MERGE (from:Symbol {name: 'main'});
+MERGE (to:Symbol {name: 'bold'});
+MATCH (from:Symbol {name: 'main'}), (to:Symbol {name: 'bold'}) CREATE (from)-[:CALLS]->(to);
+MERGE (from:Symbol {name: 'main'});
+MERGE (to:Symbol {name: 'red'});
+MATCH (from:Symbol {name: 'main'}), (to:Symbol {name: 'red'}) CREATE (from)-[:CALLS]->(to);
+MERGE (from:Symbol {name: 'main'});
+MERGE (to:Symbol {name: 'red'});
+MATCH (from:Symbol {name: 'main'}), (to:Symbol {name: 'red'}) CREATE (from)-[:CALLS]->(to);
+MERGE (from:Symbol {name: 'main'});
+MERGE (to:Symbol {name: 'red'});
+MATCH (from:Symbol {name: 'main'}), (to:Symbol {name: 'red'}) CREATE (from)-[:CALLS]->(to);
+MERGE (from:Symbol {name: 'main'});
+MERGE (to:Symbol {name: 'red'});
+MATCH (from:Symbol {name: 'main'}), (to:Symbol {name: 'red'}) CREATE (from)-[:CALLS]->(to);
+MERGE (from:Symbol {name: 'main'});
+MERGE (to:Symbol {name: 'verifyDatabases'});
+MATCH (from:Symbol {name: 'main'}), (to:Symbol {name: 'verifyDatabases'}) CREATE (from)-[:CALLS]->(to);
+MERGE (from:Symbol {name: 'main'});
+MERGE (to:Symbol {name: 'bold'});
+MATCH (from:Symbol {name: 'main'}), (to:Symbol {name: 'bold'}) CREATE (from)-[:CALLS]->(to);
+MERGE (from:Symbol {name: 'main'});
+MERGE (to:Symbol {name: 'green'});
+MATCH (from:Symbol {name: 'main'}), (to:Symbol {name: 'green'}) CREATE (from)-[:CALLS]->(to);
+MERGE (from:Symbol {name: 'main'});
+MERGE (to:Symbol {name: 'green'});
+MATCH (from:Symbol {name: 'main'}), (to:Symbol {name: 'green'}) CREATE (from)-[:CALLS]->(to);
+MERGE (from:Symbol {name: 'main'});
+MERGE (to:Symbol {name: 'green'});
+MATCH (from:Symbol {name: 'main'}), (to:Symbol {name: 'green'}) CREATE (from)-[:CALLS]->(to);
+MERGE (from:Symbol {name: 'main'});
+MERGE (to:Symbol {name: 'bold'});
+MATCH (from:Symbol {name: 'main'}), (to:Symbol {name: 'bold'}) CREATE (from)-[:CALLS]->(to);
+MERGE (from:Symbol {name: 'main'});
+MERGE (to:Symbol {name: 'red'});
+MATCH (from:Symbol {name: 'main'}), (to:Symbol {name: 'red'}) CREATE (from)-[:CALLS]->(to);
+MERGE (from:Symbol {name: 'main'});
+MERGE (to:Symbol {name: 'red'});
+MATCH (from:Symbol {name: 'main'}), (to:Symbol {name: 'red'}) CREATE (from)-[:CALLS]->(to);
+MATCH (n:Symbol) RETURN COUNT(n) as count
+;
+MATCH (n:Type) RETURN COUNT(n) as count
+;
+MATCH (n:Import) RETURN COUNT(n) as count
+;
+MATCH (n:File) RETURN COUNT(n) as count
+;
+MATCH (n:Module) RETURN COUNT(n) as count
+;
+MATCH ()-[r:CALLS]->() RETURN COUNT(r) as count
+;
+MATCH ()-[r:IMPORTS]->() RETURN COUNT(r) as count
+;
+MATCH ()-[r:EXTENDS]->() RETURN COUNT(r) as count
+;
+MATCH ()-[r:IMPLEMENTS]->() RETURN COUNT(r) as count
+;
+MATCH ()-[r:MEMBER_OF]->() RETURN COUNT(r) as count
+;
+MATCH ()-[r]->() RETURN COUNT(r) as count;
+MATCH (n) RETURN COUNT(n) as count LIMIT 1
+;
+MATCH (n) DETACH DELETE n
+;
+CREATE (:Symbol {id: 'symbol_1759198440216_1', name: 'Logger', kind: 'class', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 15, col: 256, exported: true, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198440567_2', name: 'setLevel', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 22, col: 377, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198440567_3', name: 'debug', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 26, col: 442, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198440567_4', name: 'info', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 32, col: 573, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198440567_5', name: 'success', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 38, col: 702, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198440567_6', name: 'warn', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 44, col: 830, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198440567_7', name: 'error', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 50, col: 957, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198440567_8', name: 'progress', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 56, col: 1084, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198440567_9', name: 'section', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 62, col: 1213, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198440567_10', name: 'subsection', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 69, col: 1371, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198440567_11', name: 'level', kind: 'property', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 16, col: 271, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198440567_12', name: 'LogLevel', kind: 'enum', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 7, col: 168, exported: true, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198440567_13', name: 'logger', kind: 'exported-var', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 77, col: 1532, exported: true, gitSha: ''});
+MERGE (from:Symbol {name: 'setLevel'});
+MERGE (to:Symbol {name: 'Logger'});
+MATCH (from:Symbol {name: 'setLevel'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to);
+MERGE (from:Symbol {name: 'debug'});
+MERGE (to:Symbol {name: 'Logger'});
+MATCH (from:Symbol {name: 'debug'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to);
+MERGE (from:Symbol {name: 'info'});
+MERGE (to:Symbol {name: 'Logger'});
+MATCH (from:Symbol {name: 'info'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to);
+MERGE (from:Symbol {name: 'success'});
+MERGE (to:Symbol {name: 'Logger'});
+MATCH (from:Symbol {name: 'success'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to);
+MERGE (from:Symbol {name: 'warn'});
+MERGE (to:Symbol {name: 'Logger'});
+MATCH (from:Symbol {name: 'warn'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to);
+MERGE (from:Symbol {name: 'error'});
+MERGE (to:Symbol {name: 'Logger'});
+MATCH (from:Symbol {name: 'error'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to);
+MERGE (from:Symbol {name: 'progress'});
+MERGE (to:Symbol {name: 'Logger'});
+MATCH (from:Symbol {name: 'progress'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to);
+MERGE (from:Symbol {name: 'section'});
+MERGE (to:Symbol {name: 'Logger'});
+MATCH (from:Symbol {name: 'section'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to);
+MERGE (from:Symbol {name: 'subsection'});
+MERGE (to:Symbol {name: 'Logger'});
+MATCH (from:Symbol {name: 'subsection'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to);
+MERGE (from:Symbol {name: 'level'});
+MERGE (to:Symbol {name: 'Logger'});
+MATCH (from:Symbol {name: 'level'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (n:Symbol) RETURN COUNT(n) as count
+;
+MATCH (n:Type) RETURN COUNT(n) as count
+;
+MATCH (n:Import) RETURN COUNT(n) as count
+;
+MATCH (n:File) RETURN COUNT(n) as count
+;
+MATCH (n:Module) RETURN COUNT(n) as count
+;
+MATCH ()-[r:CALLS]->() RETURN COUNT(r) as count
+;
+MATCH ()-[r:IMPORTS]->() RETURN COUNT(r) as count
+;
+MATCH ()-[r:EXTENDS]->() RETURN COUNT(r) as count
+;
+MATCH ()-[r:IMPLEMENTS]->() RETURN COUNT(r) as count
+;
+MATCH ()-[r:MEMBER_OF]->() RETURN COUNT(r) as count
+;
+CALL show_tables() RETURN *;
+CREATE REL TABLE MEMBER_OF (FROM Symbol TO Symbol);
+CREATE REL TABLE CALLS (FROM Symbol TO Symbol);
+MATCH (n) RETURN COUNT(n) as count LIMIT 1
+;
+MATCH (n) DETACH DELETE n
+;
+CREATE (:Symbol {id: 'symbol_1759198490906_1', name: 'Logger', kind: 'class', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 15, col: 256, exported: true, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198491382_2', name: 'setLevel', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 22, col: 377, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198491382_3', name: 'debug', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 26, col: 442, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198491382_4', name: 'info', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 32, col: 573, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198491382_5', name: 'success', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 38, col: 702, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198491382_6', name: 'warn', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 44, col: 830, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198491382_7', name: 'error', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 50, col: 957, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198491382_8', name: 'progress', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 56, col: 1084, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198491382_9', name: 'section', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 62, col: 1213, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198491382_10', name: 'subsection', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 69, col: 1371, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198491383_11', name: 'level', kind: 'property', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 16, col: 271, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198491383_12', name: 'LogLevel', kind: 'enum', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 7, col: 168, exported: true, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198491383_13', name: 'logger', kind: 'exported-var', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 77, col: 1532, exported: true, gitSha: ''});
+MATCH (from:Symbol {name: 'setLevel'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'debug'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'info'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'success'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'warn'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'error'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'progress'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'section'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'subsection'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'level'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (n:Symbol) RETURN COUNT(n) as count
+;
+MATCH (n:Type) RETURN COUNT(n) as count
+;
+MATCH (n:Import) RETURN COUNT(n) as count
+;
+MATCH (n:File) RETURN COUNT(n) as count
+;
+MATCH (n:Module) RETURN COUNT(n) as count
+;
+MATCH ()-[r:CALLS]->() RETURN COUNT(r) as count
+;
+MATCH ()-[r:IMPORTS]->() RETURN COUNT(r) as count
+;
+MATCH ()-[r:EXTENDS]->() RETURN COUNT(r) as count
+;
+MATCH ()-[r:IMPLEMENTS]->() RETURN COUNT(r) as count
+;
+MATCH ()-[r:MEMBER_OF]->() RETURN COUNT(r) as count
+;
+MATCH (method:Symbol)-[:MEMBER_OF]->(class:Symbol) RETURN method.name as method, class.name as class LIMIT 5;
+MATCH (n) RETURN COUNT(n) as count LIMIT 1
+;
+MATCH (n) DETACH DELETE n
+;
+CREATE (:Symbol {id: 'symbol_1759198515569_1', name: 'Logger', kind: 'class', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 15, col: 256, exported: true, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198516024_2', name: 'setLevel', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 22, col: 377, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198516024_3', name: 'debug', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 26, col: 442, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198516024_4', name: 'info', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 32, col: 573, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198516024_5', name: 'success', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 38, col: 702, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198516025_6', name: 'warn', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 44, col: 830, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198516025_7', name: 'error', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 50, col: 957, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198516025_8', name: 'progress', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 56, col: 1084, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198516025_9', name: 'section', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 62, col: 1213, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198516025_10', name: 'subsection', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 69, col: 1371, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198516025_11', name: 'level', kind: 'property', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 16, col: 271, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198516025_12', name: 'LogLevel', kind: 'enum', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 7, col: 168, exported: true, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198516025_13', name: 'logger', kind: 'exported-var', file: '/workspaces/mastra-context-network/scripts/utils/logger.ts', line: 77, col: 1532, exported: true, gitSha: ''});
+MATCH (from:Symbol {name: 'setLevel'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'debug'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'info'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'success'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'warn'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'error'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'progress'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'section'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'subsection'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'level'}), (to:Symbol {name: 'Logger'}) CREATE (from)-[:MEMBER_OF]->(to);
+CREATE (:Symbol {id: 'symbol_1759198517690_14', name: 'ConfigManager', kind: 'class', file: '/workspaces/mastra-context-network/scripts/utils/config.ts', line: 32, col: 567, exported: true, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198517889_15', name: 'loadConfig', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/config.ts', line: 39, col: 676, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198517889_16', name: 'get', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/config.ts', line: 78, col: 2374, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198517889_17', name: 'getAll', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/config.ts', line: 82, col: 2459, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198517889_18', name: 'set', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/config.ts', line: 86, col: 2516, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198517889_19', name: 'reload', kind: 'method', file: '/workspaces/mastra-context-network/scripts/utils/config.ts', line: 90, col: 2615, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198517889_20', name: 'config', kind: 'property', file: '/workspaces/mastra-context-network/scripts/utils/config.ts', line: 33, col: 589, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198517889_21', name: 'Config', kind: 'interface', file: '/workspaces/mastra-context-network/scripts/utils/config.ts', line: 5, col: 45, exported: true, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198517889_22', name: 'config', kind: 'exported-var', file: '/workspaces/mastra-context-network/scripts/utils/config.ts', line: 96, col: 2707, exported: true, gitSha: ''});
+CREATE (:Type {id: 'type_1759198517889_23', name: 'Config', primitive: false, generic: false, nullable: false, readonly: false});
+MATCH (from:Symbol {name: 'loadConfig'}), (to:Symbol {name: 'ConfigManager'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'get'}), (to:Symbol {name: 'ConfigManager'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'getAll'}), (to:Symbol {name: 'ConfigManager'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'set'}), (to:Symbol {name: 'ConfigManager'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'reload'}), (to:Symbol {name: 'ConfigManager'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'config'}), (to:Symbol {name: 'ConfigManager'}) CREATE (from)-[:MEMBER_OF]->(to);
+CREATE (:Symbol {id: 'symbol_1759198519226_30', name: 'KuzuClient', kind: 'class', file: '/workspaces/mastra-context-network/scripts/lib/kuzu-client.ts', line: 33, col: 712, exported: true, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198519226_31', name: 'initialize', kind: 'method', file: '/workspaces/mastra-context-network/scripts/lib/kuzu-client.ts', line: 44, col: 942, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198519226_32', name: 'query', kind: 'method', file: '/workspaces/mastra-context-network/scripts/lib/kuzu-client.ts', line: 64, col: 1539, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198519226_33', name: 'parseQueryOutput', kind: 'method', file: '/workspaces/mastra-context-network/scripts/lib/kuzu-client.ts', line: 117, col: 3151, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198519226_34', name: 'insertSymbols', kind: 'method', file: '/workspaces/mastra-context-network/scripts/lib/kuzu-client.ts', line: 205, col: 5756, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198519226_35', name: 'insertTypes', kind: 'method', file: '/workspaces/mastra-context-network/scripts/lib/kuzu-client.ts', line: 233, col: 6483, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198519226_36', name: 'insertImports', kind: 'method', file: '/workspaces/mastra-context-network/scripts/lib/kuzu-client.ts', line: 259, col: 7163, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198519226_37', name: 'insertRelationships', kind: 'method', file: '/workspaces/mastra-context-network/scripts/lib/kuzu-client.ts', line: 269, col: 7473, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198519226_38', name: 'executeBatch', kind: 'method', file: '/workspaces/mastra-context-network/scripts/lib/kuzu-client.ts', line: 294, col: 8408, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198519226_39', name: 'clearAll', kind: 'method', file: '/workspaces/mastra-context-network/scripts/lib/kuzu-client.ts', line: 322, col: 9428, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198519227_40', name: 'getStats', kind: 'method', file: '/workspaces/mastra-context-network/scripts/lib/kuzu-client.ts', line: 330, col: 9624, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198519227_41', name: 'findSymbols', kind: 'method', file: '/workspaces/mastra-context-network/scripts/lib/kuzu-client.ts', line: 353, col: 10434, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198519227_42', name: 'getCallGraph', kind: 'method', file: '/workspaces/mastra-context-network/scripts/lib/kuzu-client.ts', line: 371, col: 11268, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198519227_43', name: 'getDependencyGraph', kind: 'method', file: '/workspaces/mastra-context-network/scripts/lib/kuzu-client.ts', line: 385, col: 11635, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198519227_44', name: 'escapeCypher', kind: 'method', file: '/workspaces/mastra-context-network/scripts/lib/kuzu-client.ts', line: 399, col: 11979, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198519227_45', name: 'escapeProperties', kind: 'method', file: '/workspaces/mastra-context-network/scripts/lib/kuzu-client.ts', line: 408, col: 12191, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198519227_46', name: 'formatProperties', kind: 'method', file: '/workspaces/mastra-context-network/scripts/lib/kuzu-client.ts', line: 425, col: 12598, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198519227_47', name: 'parseSymbolNode', kind: 'method', file: '/workspaces/mastra-context-network/scripts/lib/kuzu-client.ts', line: 444, col: 13175, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198519227_48', name: 'dbPath', kind: 'property', file: '/workspaces/mastra-context-network/scripts/lib/kuzu-client.ts', line: 34, col: 738, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198519227_49', name: 'isInitialized', kind: 'property', file: '/workspaces/mastra-context-network/scripts/lib/kuzu-client.ts', line: 35, col: 764, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198519227_50', name: 'QueryResult', kind: 'interface', file: '/workspaces/mastra-context-network/scripts/lib/kuzu-client.ts', line: 14, col: 430, exported: true, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198519227_51', name: 'NodeData', kind: 'interface', file: '/workspaces/mastra-context-network/scripts/lib/kuzu-client.ts', line: 21, col: 546, exported: true, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198519227_52', name: 'EdgeData', kind: 'interface', file: '/workspaces/mastra-context-network/scripts/lib/kuzu-client.ts', line: 26, col: 613, exported: true, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198519412_53', name: 'execAsync', kind: 'variable', file: '/workspaces/mastra-context-network/scripts/lib/kuzu-client.ts', line: 12, col: 394, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198519412_54', name: 'kuzuClient', kind: 'exported-var', file: '/workspaces/mastra-context-network/scripts/lib/kuzu-client.ts', line: 476, col: 14188, exported: true, gitSha: ''});
+CREATE (:Type {id: 'type_1759198519412_55', name: 'QueryResult', primitive: false, generic: false, nullable: false, readonly: false});
+CREATE (:Type {id: 'type_1759198519412_56', name: 'NodeData', primitive: false, generic: false, nullable: false, readonly: false});
+CREATE (:Type {id: 'type_1759198519412_57', name: 'EdgeData', primitive: false, generic: false, nullable: false, readonly: false});
+MATCH (from:Symbol {name: 'initialize'}), (to:Symbol {name: 'KuzuClient'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'query'}), (to:Symbol {name: 'KuzuClient'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'parseQueryOutput'}), (to:Symbol {name: 'KuzuClient'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'insertSymbols'}), (to:Symbol {name: 'KuzuClient'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'insertTypes'}), (to:Symbol {name: 'KuzuClient'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'insertImports'}), (to:Symbol {name: 'KuzuClient'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'insertRelationships'}), (to:Symbol {name: 'KuzuClient'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'executeBatch'}), (to:Symbol {name: 'KuzuClient'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'clearAll'}), (to:Symbol {name: 'KuzuClient'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'getStats'}), (to:Symbol {name: 'KuzuClient'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'findSymbols'}), (to:Symbol {name: 'KuzuClient'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'getCallGraph'}), (to:Symbol {name: 'KuzuClient'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'getDependencyGraph'}), (to:Symbol {name: 'KuzuClient'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'escapeCypher'}), (to:Symbol {name: 'KuzuClient'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'escapeProperties'}), (to:Symbol {name: 'KuzuClient'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'formatProperties'}), (to:Symbol {name: 'KuzuClient'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'parseSymbolNode'}), (to:Symbol {name: 'KuzuClient'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'dbPath'}), (to:Symbol {name: 'KuzuClient'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'isInitialized'}), (to:Symbol {name: 'KuzuClient'}) CREATE (from)-[:MEMBER_OF]->(to);
+CREATE (:Symbol {id: 'symbol_1759198522965_60', name: 'ASTAnalyzer', kind: 'class', file: '/workspaces/mastra-context-network/scripts/lib/ast-analyzer.ts', line: 55, col: 1099, exported: true, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198522965_61', name: 'addSourceFiles', kind: 'method', file: '/workspaces/mastra-context-network/scripts/lib/ast-analyzer.ts', line: 77, col: 1637, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198522965_62', name: 'analyzeFile', kind: 'method', file: '/workspaces/mastra-context-network/scripts/lib/ast-analyzer.ts', line: 84, col: 1815, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198522965_63', name: 'extractImports', kind: 'method', file: '/workspaces/mastra-context-network/scripts/lib/ast-analyzer.ts', line: 112, col: 2634, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198522965_64', name: 'extractSymbols', kind: 'method', file: '/workspaces/mastra-context-network/scripts/lib/ast-analyzer.ts', line: 144, col: 3683, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198522965_65', name: 'extractTypes', kind: 'method', file: '/workspaces/mastra-context-network/scripts/lib/ast-analyzer.ts', line: 215, col: 5773, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198522965_66', name: 'extractRelationships', kind: 'method', file: '/workspaces/mastra-context-network/scripts/lib/ast-analyzer.ts', line: 256, col: 6975, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198522965_67', name: 'createSymbol', kind: 'method', file: '/workspaces/mastra-context-network/scripts/lib/ast-analyzer.ts', line: 308, col: 8265, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198522965_68', name: 'getNodeName', kind: 'method', file: '/workspaces/mastra-context-network/scripts/lib/ast-analyzer.ts', line: 328, col: 8841, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198522965_69', name: 'isNodeExported', kind: 'method', file: '/workspaces/mastra-context-network/scripts/lib/ast-analyzer.ts', line: 335, col: 9044, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198522965_70', name: 'isNodeAsync', kind: 'method', file: '/workspaces/mastra-context-network/scripts/lib/ast-analyzer.ts', line: 342, col: 9244, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198522965_71', name: 'getNodeVisibility', kind: 'method', file: '/workspaces/mastra-context-network/scripts/lib/ast-analyzer.ts', line: 349, col: 9432, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198522965_72', name: 'getNodeJSDoc', kind: 'method', file: '/workspaces/mastra-context-network/scripts/lib/ast-analyzer.ts', line: 357, col: 9766, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198522965_73', name: 'generateId', kind: 'method', file: '/workspaces/mastra-context-network/scripts/lib/ast-analyzer.ts', line: 367, col: 10096, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198522965_74', name: 'project', kind: 'property', file: '/workspaces/mastra-context-network/scripts/lib/ast-analyzer.ts', line: 56, col: 1126, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198522965_75', name: 'idCounter', kind: 'property', file: '/workspaces/mastra-context-network/scripts/lib/ast-analyzer.ts', line: 57, col: 1154, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198522965_76', name: 'ExtractedSymbol', kind: 'interface', file: '/workspaces/mastra-context-network/scripts/lib/ast-analyzer.ts', line: 9, col: 269, exported: true, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198522965_77', name: 'ExtractedType', kind: 'interface', file: '/workspaces/mastra-context-network/scripts/lib/ast-analyzer.ts', line: 22, col: 489, exported: true, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198522965_78', name: 'ExtractedImport', kind: 'interface', file: '/workspaces/mastra-context-network/scripts/lib/ast-analyzer.ts', line: 33, col: 675, exported: true, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198522965_79', name: 'Relationship', kind: 'interface', file: '/workspaces/mastra-context-network/scripts/lib/ast-analyzer.ts', line: 43, col: 866, exported: true, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198522965_80', name: 'ASTAnalyzerOptions', kind: 'interface', file: '/workspaces/mastra-context-network/scripts/lib/ast-analyzer.ts', line: 50, col: 985, exported: true, gitSha: ''});
+CREATE (:Type {id: 'type_1759198522965_81', name: 'ExtractedSymbol', primitive: false, generic: false, nullable: false, readonly: false});
+CREATE (:Type {id: 'type_1759198522965_82', name: 'ExtractedType', primitive: false, generic: false, nullable: false, readonly: false});
+CREATE (:Type {id: 'type_1759198522965_83', name: 'ExtractedImport', primitive: false, generic: false, nullable: false, readonly: false});
+CREATE (:Type {id: 'type_1759198522965_84', name: 'Relationship', primitive: false, generic: false, nullable: false, readonly: false});
+CREATE (:Type {id: 'type_1759198522965_85', name: 'ASTAnalyzerOptions', primitive: false, generic: false, nullable: false, readonly: false});
+MATCH (from:Symbol {name: 'addSourceFiles'}), (to:Symbol {name: 'ASTAnalyzer'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'analyzeFile'}), (to:Symbol {name: 'ASTAnalyzer'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'extractImports'}), (to:Symbol {name: 'ASTAnalyzer'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'extractSymbols'}), (to:Symbol {name: 'ASTAnalyzer'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'extractTypes'}), (to:Symbol {name: 'ASTAnalyzer'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'extractRelationships'}), (to:Symbol {name: 'ASTAnalyzer'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'createSymbol'}), (to:Symbol {name: 'ASTAnalyzer'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'getNodeName'}), (to:Symbol {name: 'ASTAnalyzer'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'isNodeExported'}), (to:Symbol {name: 'ASTAnalyzer'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'isNodeAsync'}), (to:Symbol {name: 'ASTAnalyzer'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'getNodeVisibility'}), (to:Symbol {name: 'ASTAnalyzer'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'getNodeJSDoc'}), (to:Symbol {name: 'ASTAnalyzer'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'generateId'}), (to:Symbol {name: 'ASTAnalyzer'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'project'}), (to:Symbol {name: 'ASTAnalyzer'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'idCounter'}), (to:Symbol {name: 'ASTAnalyzer'}) CREATE (from)-[:MEMBER_OF]->(to);
+CREATE (:Symbol {id: 'symbol_1759198525626_91', name: 'DuckDBClient', kind: 'class', file: '/workspaces/mastra-context-network/scripts/lib/duckdb-client.ts', line: 52, col: 1068, exported: true, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198525627_92', name: 'initialize', kind: 'method', file: '/workspaces/mastra-context-network/scripts/lib/duckdb-client.ts', line: 63, col: 1300, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198525627_93', name: 'query', kind: 'method', file: '/workspaces/mastra-context-network/scripts/lib/duckdb-client.ts', line: 83, col: 1874, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198525627_94', name: 'parseQueryOutput', kind: 'method', file: '/workspaces/mastra-context-network/scripts/lib/duckdb-client.ts', line: 108, col: 2466, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198525627_95', name: 'insertFileMetrics', kind: 'method', file: '/workspaces/mastra-context-network/scripts/lib/duckdb-client.ts', line: 135, col: 3125, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198525627_96', name: 'insertMetric', kind: 'method', file: '/workspaces/mastra-context-network/scripts/lib/duckdb-client.ts', line: 161, col: 4122, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198525627_97', name: 'insertQueryMetrics', kind: 'method', file: '/workspaces/mastra-context-network/scripts/lib/duckdb-client.ts', line: 181, col: 4680, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198525627_98', name: 'getFileMetrics', kind: 'method', file: '/workspaces/mastra-context-network/scripts/lib/duckdb-client.ts', line: 200, col: 5178, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198525627_99', name: 'getChangedFiles', kind: 'method', file: '/workspaces/mastra-context-network/scripts/lib/duckdb-client.ts', line: 233, col: 6075, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198525627_100', name: 'getAggregatedMetrics', kind: 'method', file: '/workspaces/mastra-context-network/scripts/lib/duckdb-client.ts', line: 248, col: 6432, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198525627_101', name: 'getComplexityTrends', kind: 'method', file: '/workspaces/mastra-context-network/scripts/lib/duckdb-client.ts', line: 284, col: 7281, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198525627_102', name: 'getDependencyStats', kind: 'method', file: '/workspaces/mastra-context-network/scripts/lib/duckdb-client.ts', line: 304, col: 7743, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198525627_103', name: 'getQueryPerformanceStats', kind: 'method', file: '/workspaces/mastra-context-network/scripts/lib/duckdb-client.ts', line: 323, col: 8344, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198525628_104', name: 'cleanOldMetrics', kind: 'method', file: '/workspaces/mastra-context-network/scripts/lib/duckdb-client.ts', line: 345, col: 8958, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198525628_105', name: 'getStats', kind: 'method', file: '/workspaces/mastra-context-network/scripts/lib/duckdb-client.ts', line: 361, col: 9372, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198525628_106', name: 'escapeSQL', kind: 'method', file: '/workspaces/mastra-context-network/scripts/lib/duckdb-client.ts', line: 399, col: 10396, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198525628_107', name: 'execute', kind: 'method', file: '/workspaces/mastra-context-network/scripts/lib/duckdb-client.ts', line: 406, col: 10536, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198525628_108', name: 'clearTable', kind: 'method', file: '/workspaces/mastra-context-network/scripts/lib/duckdb-client.ts', line: 413, col: 10666, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198525628_109', name: 'dbPath', kind: 'property', file: '/workspaces/mastra-context-network/scripts/lib/duckdb-client.ts', line: 53, col: 1096, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198525628_110', name: 'isInitialized', kind: 'property', file: '/workspaces/mastra-context-network/scripts/lib/duckdb-client.ts', line: 54, col: 1122, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198525628_111', name: 'MetricRecord', kind: 'interface', file: '/workspaces/mastra-context-network/scripts/lib/duckdb-client.ts', line: 13, col: 326, exported: true, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198525628_112', name: 'FileMetrics', kind: 'interface', file: '/workspaces/mastra-context-network/scripts/lib/duckdb-client.ts', line: 22, col: 498, exported: true, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198525628_113', name: 'QueryMetrics', kind: 'interface', file: '/workspaces/mastra-context-network/scripts/lib/duckdb-client.ts', line: 37, col: 807, exported: true, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198525628_114', name: 'DuckDBQueryResult', kind: 'interface', file: '/workspaces/mastra-context-network/scripts/lib/duckdb-client.ts', line: 45, col: 946, exported: true, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198525788_115', name: 'execAsync', kind: 'variable', file: '/workspaces/mastra-context-network/scripts/lib/duckdb-client.ts', line: 11, col: 290, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198525788_116', name: 'duckdbClient', kind: 'exported-var', file: '/workspaces/mastra-context-network/scripts/lib/duckdb-client.ts', line: 426, col: 11089, exported: true, gitSha: ''});
+CREATE (:Type {id: 'type_1759198525788_117', name: 'MetricRecord', primitive: false, generic: false, nullable: false, readonly: false});
+CREATE (:Type {id: 'type_1759198525788_118', name: 'FileMetrics', primitive: false, generic: false, nullable: false, readonly: false});
+CREATE (:Type {id: 'type_1759198525788_119', name: 'QueryMetrics', primitive: false, generic: false, nullable: false, readonly: false});
+CREATE (:Type {id: 'type_1759198525788_120', name: 'DuckDBQueryResult', primitive: false, generic: false, nullable: false, readonly: false});
+MATCH (from:Symbol {name: 'initialize'}), (to:Symbol {name: 'DuckDBClient'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'query'}), (to:Symbol {name: 'DuckDBClient'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'parseQueryOutput'}), (to:Symbol {name: 'DuckDBClient'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'insertFileMetrics'}), (to:Symbol {name: 'DuckDBClient'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'insertMetric'}), (to:Symbol {name: 'DuckDBClient'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'insertQueryMetrics'}), (to:Symbol {name: 'DuckDBClient'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'getFileMetrics'}), (to:Symbol {name: 'DuckDBClient'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'getChangedFiles'}), (to:Symbol {name: 'DuckDBClient'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'getAggregatedMetrics'}), (to:Symbol {name: 'DuckDBClient'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'getComplexityTrends'}), (to:Symbol {name: 'DuckDBClient'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'getDependencyStats'}), (to:Symbol {name: 'DuckDBClient'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'getQueryPerformanceStats'}), (to:Symbol {name: 'DuckDBClient'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'cleanOldMetrics'}), (to:Symbol {name: 'DuckDBClient'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'getStats'}), (to:Symbol {name: 'DuckDBClient'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'escapeSQL'}), (to:Symbol {name: 'DuckDBClient'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'execute'}), (to:Symbol {name: 'DuckDBClient'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'clearTable'}), (to:Symbol {name: 'DuckDBClient'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'dbPath'}), (to:Symbol {name: 'DuckDBClient'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'isInitialized'}), (to:Symbol {name: 'DuckDBClient'}) CREATE (from)-[:MEMBER_OF]->(to);
+CREATE (:Symbol {id: 'symbol_1759198529065_130', name: 'main', kind: 'function', file: '/workspaces/mastra-context-network/scripts/commands/scan.ts', line: 341, col: 9735, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198529223_131', name: 'CodebaseScanner', kind: 'class', file: '/workspaces/mastra-context-network/scripts/commands/scan.ts', line: 29, col: 840, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198529223_132', name: 'scan', kind: 'method', file: '/workspaces/mastra-context-network/scripts/commands/scan.ts', line: 52, col: 1381, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198529223_133', name: 'initializeDatabases', kind: 'method', file: '/workspaces/mastra-context-network/scripts/commands/scan.ts', line: 82, col: 2034, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198529223_134', name: 'clearData', kind: 'method', file: '/workspaces/mastra-context-network/scripts/commands/scan.ts', line: 102, col: 2555, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198529223_135', name: 'collectFiles', kind: 'method', file: '/workspaces/mastra-context-network/scripts/commands/scan.ts', line: 111, col: 2789, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198529223_136', name: 'matchPattern', kind: 'method', file: '/workspaces/mastra-context-network/scripts/commands/scan.ts', line: 149, col: 3837, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198529223_137', name: 'processFile', kind: 'method', file: '/workspaces/mastra-context-network/scripts/commands/scan.ts', line: 158, col: 4106, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198529223_138', name: 'checkIfFileNeedsScanning', kind: 'method', file: '/workspaces/mastra-context-network/scripts/commands/scan.ts', line: 205, col: 5449, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198529223_139', name: 'calculateFileHash', kind: 'method', file: '/workspaces/mastra-context-network/scripts/commands/scan.ts', line: 225, col: 6050, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198529223_140', name: 'storeResults', kind: 'method', file: '/workspaces/mastra-context-network/scripts/commands/scan.ts', line: 233, col: 6409, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198529223_141', name: 'storeFileMetrics', kind: 'method', file: '/workspaces/mastra-context-network/scripts/commands/scan.ts', line: 255, col: 6991, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198529223_142', name: 'reportResults', kind: 'method', file: '/workspaces/mastra-context-network/scripts/commands/scan.ts', line: 304, col: 8458, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198529223_143', name: 'analyzer', kind: 'property', file: '/workspaces/mastra-context-network/scripts/commands/scan.ts', line: 30, col: 864, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198529223_144', name: 'options', kind: 'property', file: '/workspaces/mastra-context-network/scripts/commands/scan.ts', line: 31, col: 897, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198529223_145', name: 'fileCount', kind: 'property', file: '/workspaces/mastra-context-network/scripts/commands/scan.ts', line: 32, col: 929, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198529223_146', name: 'symbolCount', kind: 'property', file: '/workspaces/mastra-context-network/scripts/commands/scan.ts', line: 33, col: 954, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198529223_147', name: 'typeCount', kind: 'property', file: '/workspaces/mastra-context-network/scripts/commands/scan.ts', line: 34, col: 981, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198529223_148', name: 'importCount', kind: 'property', file: '/workspaces/mastra-context-network/scripts/commands/scan.ts', line: 35, col: 1006, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198529223_149', name: 'relationshipCount', kind: 'property', file: '/workspaces/mastra-context-network/scripts/commands/scan.ts', line: 36, col: 1033, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198529224_150', name: 'ScanOptions', kind: 'interface', file: '/workspaces/mastra-context-network/scripts/commands/scan.ts', line: 19, col: 669, exported: false, gitSha: ''});
+CREATE (:Type {id: 'type_1759198529224_151', name: 'ScanOptions', primitive: false, generic: false, nullable: false, readonly: false});
+MATCH (from:Symbol {name: 'scan'}), (to:Symbol {name: 'CodebaseScanner'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'initializeDatabases'}), (to:Symbol {name: 'CodebaseScanner'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'clearData'}), (to:Symbol {name: 'CodebaseScanner'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'collectFiles'}), (to:Symbol {name: 'CodebaseScanner'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'matchPattern'}), (to:Symbol {name: 'CodebaseScanner'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'processFile'}), (to:Symbol {name: 'CodebaseScanner'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'checkIfFileNeedsScanning'}), (to:Symbol {name: 'CodebaseScanner'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'calculateFileHash'}), (to:Symbol {name: 'CodebaseScanner'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'storeResults'}), (to:Symbol {name: 'CodebaseScanner'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'storeFileMetrics'}), (to:Symbol {name: 'CodebaseScanner'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'reportResults'}), (to:Symbol {name: 'CodebaseScanner'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'analyzer'}), (to:Symbol {name: 'CodebaseScanner'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'options'}), (to:Symbol {name: 'CodebaseScanner'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'fileCount'}), (to:Symbol {name: 'CodebaseScanner'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'symbolCount'}), (to:Symbol {name: 'CodebaseScanner'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'typeCount'}), (to:Symbol {name: 'CodebaseScanner'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'importCount'}), (to:Symbol {name: 'CodebaseScanner'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'relationshipCount'}), (to:Symbol {name: 'CodebaseScanner'}) CREATE (from)-[:MEMBER_OF]->(to);
+MATCH (from:Symbol {name: 'main'}), (to:Symbol {name: 'parse'}) CREATE (from)-[:CALLS]->(to);
+CREATE (:Symbol {id: 'symbol_1759198532963_154', name: 'executeKuzuQuery', kind: 'function', file: '/workspaces/mastra-context-network/scripts/commands/query.ts', line: 18, col: 416, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198533113_155', name: 'parseKuzuOutput', kind: 'function', file: '/workspaces/mastra-context-network/scripts/commands/query.ts', line: 57, col: 1427, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198533113_156', name: 'parseValue', kind: 'function', file: '/workspaces/mastra-context-network/scripts/commands/query.ts', line: 93, col: 2286, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198533114_157', name: 'QueryOptions', kind: 'interface', file: '/workspaces/mastra-context-network/scripts/commands/query.ts', line: 11, col: 294, exported: false, gitSha: ''});
+CREATE (:Symbol {id: 'symbol_1759198533114_158', name: 'QUERY_TEMPLATES', kind: 'variable', file: '/workspaces/mastra-context-network/scripts/commands/query.ts', line: 108, col: 2709, exported: false, gitSha: ''});
+CREATE (:Type {id: 'type_1759198533114_159', name: 'QueryOptions', primitive: false, generic: false, nullable: false, readonly: false});
+MATCH (from:Symbol {name: 'executeKuzuQuery'}), (to:Symbol {name: 'exec'}) CREATE (from)-[:CALLS]->(to);
+MATCH (from:Symbol {name: 'executeKuzuQuery'}), (to:Symbol {name: 'parseKuzuOutput'}) CREATE (from)-[:CALLS]->(to);
+MATCH (from:Symbol {name: 'parseKuzuOutput'}), (to:Symbol {name: 'parseValue'}) CREATE (from)-[:CALLS]->(to);
+MATCH (from:Symbol {name: 'parseValue'}), (to:Symbol {name: 'parseFloat'}) CREATE (from)-[:CALLS]->(to);
+MATCH (n:Symbol) RETURN COUNT(n) as count
+;
+MATCH (n:Type) RETURN COUNT(n) as count
+;
+MATCH (n:Import) RETURN COUNT(n) as count
+;
+MATCH (n:File) RETURN COUNT(n) as count
+;
+MATCH (n:Module) RETURN COUNT(n) as count
+;
+MATCH ()-[r:CALLS]->() RETURN COUNT(r) as count
+;
+MATCH ()-[r:IMPORTS]->() RETURN COUNT(r) as count
+;
+MATCH ()-[r:EXTENDS]->() RETURN COUNT(r) as count
+;
+MATCH ()-[r:IMPLEMENTS]->() RETURN COUNT(r) as count
+;
+MATCH ()-[r:MEMBER_OF]->() RETURN COUNT(r) as count
+;
+// Find all classes with their method count
+MATCH (class:Symbol {kind: 'class'})
+OPTIONAL MATCH (method:Symbol)-[:MEMBER_OF]->(class)
+WITH class.name as className, COUNT(method) as methodCount
+WHERE methodCount > 0
+RETURN className, methodCount
+ORDER BY methodCount DESC
+LIMIT 5;

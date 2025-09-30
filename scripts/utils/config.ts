@@ -37,14 +37,20 @@ class ConfigManager {
   }
 
   private loadConfig(): Config {
+    // Fix paths that have /workspace/ prefix (should be relative or /workspaces/)
+    const fixPath = (path: string | undefined, defaultPath: string): string => {
+      if (!path) return defaultPath;
+      // If path starts with /workspace/ (singular), make it relative
+      if (path.startsWith("/workspace/")) {
+        return path.replace("/workspace/", "./");
+      }
+      return path;
+    };
+
     return {
-      // Database paths (use relative paths)
-      kuzuDbPath: Deno.env.get("KUZU_DB_PATH")?.startsWith("/") ?
-        Deno.env.get("KUZU_DB_PATH")! :
-        (Deno.env.get("KUZU_DB_PATH") || ".kuzu/semantic.db"),
-      duckdbPath: Deno.env.get("DUCKDB_PATH")?.startsWith("/") ?
-        Deno.env.get("DUCKDB_PATH")! :
-        (Deno.env.get("DUCKDB_PATH") || ".duckdb/metrics.db"),
+      // Database paths (use relative paths from workspace root)
+      kuzuDbPath: fixPath(Deno.env.get("KUZU_DB_PATH"), ".kuzu/semantic.db"),
+      duckdbPath: fixPath(Deno.env.get("DUCKDB_PATH"), ".duckdb/metrics.db"),
 
       // Agent configuration
       agentContextWindow: parseInt(Deno.env.get("AGENT_CONTEXT_WINDOW") || "20"),

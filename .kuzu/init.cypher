@@ -14,7 +14,7 @@
           exported BOOLEAN,
           file STRING,
           line INT32,
-          column INT32,
+          col INT32,
           gitSha STRING
         );
         
