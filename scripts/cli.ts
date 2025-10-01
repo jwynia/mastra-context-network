@@ -12,6 +12,7 @@ import { colors } from "https://deno.land/x/cliffy@v1.0.0-rc.4/ansi/colors.ts";
 // Import command implementations
 import { scanCommand } from "./commands/scan.ts";
 import { queryCommand } from "./commands/query.ts";
+import { watchCommand } from "./commands/watch.ts";
 
 // Version from deno.json or hardcoded
 const VERSION = "0.1.0";
@@ -32,6 +33,7 @@ const cli = new Command()
   // Register commands
   .command("scan", scanCommand)
   .command("query", queryCommand)
+  .command("watch", watchCommand)
 
   // Health check command (wraps doctor.ts)
   .command(
@@ -104,23 +106,6 @@ const cli = new Command()
       })
   )
 
-  // Watch command (placeholder)
-  .command(
-    "watch",
-    new Command()
-      .description("Watch files and incrementally update databases (planned)")
-      .option("--mode <mode:string>", "Watch mode: test|build|analyze")
-      .option("--notify", "Enable desktop notifications")
-      .action(() => {
-        console.log(colors.yellow("⏳ Watch command not yet implemented"));
-        console.log("\nPlanned capabilities:");
-        console.log("  - File system watching");
-        console.log("  - Incremental database updates");
-        console.log("  - Real-time analysis");
-        console.log("\nSee: context-network/planning/typescript-agent-backlog.md");
-        Deno.exit(1);
-      })
-  )
 
   // Help is built-in by Cliffy
   .example(

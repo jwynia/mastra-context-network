@@ -11,6 +11,49 @@ Implementation details and design decisions for the core utilities layer, comple
 
 ## Key Locations
 
+### Debouncer (`debounce.ts`)
+**Location**: `scripts/utils/debounce.ts:1-82`
+**Added**: Phase 3 (2025-09-30)
+
+**Class**: `Debouncer<T extends (...args: any[]) => void>`
+
+**Entry Points**:
+- Constructor - `debounce.ts:28` - Initialize with function and delay
+- `trigger(...args)` - `debounce.ts:38` - Trigger with timer reset
+- `flush()` - `debounce.ts:60` - Execute immediately
+- `cancel()` - `debounce.ts:75` - Cancel pending execution
+
+**Implementation Notes**:
+- Generic type preserves function signature
+- Stores latest arguments (uses most recent on execute)
+- Resets timer on each trigger
+- Can flush manually for immediate execution
+- Zero-delay supported (uses event loop)
+
+**Use Cases**:
+- File watching (debounce rapid save events)
+- API rate limiting
+- Search input debouncing
+- Window resize handlers
+
+**Performance Characteristics**:
+- Trigger overhead: ~0.1ms (setTimeout call)
+- Memory: ~100 bytes (timer + args)
+- Scalability: One instance per debounced function
+
+**Test Coverage**: `debounce.test.ts:1-143` (10 test cases)
+
+**Design Pattern**:
+```typescript
+// Delay-reset debouncing
+1. Store latest arguments
+2. Clear existing timer
+3. Start new timer
+4. Execute after delay expires
+```
+
+---
+
 ### File Hashing (`file-hash.ts`)
 **Location**: `scripts/utils/file-hash.ts:1-58`
 

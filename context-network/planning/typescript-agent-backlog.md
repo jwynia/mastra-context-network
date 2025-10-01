@@ -86,22 +86,22 @@ When integration tests fail, you end up manually testing anyway to understand wh
 ### Phase 3: File Watching & Incremental Updates 🔄
 *Prerequisites: Phase 1.3*
 
-#### 3.1 Watch System
-- [ ] Implement `watch.ts` using Deno.watchFs
-- [ ] Add debouncing for rapid changes
-- [ ] Create incremental scan logic
-- [ ] Implement file hash tracking
-- [ ] Add background/daemon mode support
-- [ ] **Manual test: Edit files and observe updates**
+#### 3.1 Watch System ✅
+- [x] Implement `watch.ts` using Deno.watchFs
+- [x] Add debouncing for rapid changes
+- [x] Create incremental scan logic
+- [x] Implement file hash tracking
+- [ ] Add background/daemon mode support (deferred)
+- [x] **Manual test: Edit files and observe updates**
 
-#### 3.2 Incremental Scanning
-- [ ] Track file hashes in DuckDB
-- [ ] Implement diff detection
-- [ ] Update only changed symbols in Kuzu
-- [ ] Handle file moves/renames
-- [ ] Maintain relationship integrity
-- [ ] **Unit test: Hash calculation and diff logic**
-- [ ] **Manual test: Verify incremental updates work**
+#### 3.2 Incremental Scanning (Partial ✅)
+- [ ] Track file hashes in DuckDB (pending integration)
+- [x] Implement diff detection (IncrementalScanner)
+- [ ] Update only changed symbols in Kuzu (pending integration)
+- [ ] Handle file moves/renames (pending)
+- [ ] Maintain relationship integrity (pending)
+- [x] **Unit test: Hash calculation and diff logic**
+- [ ] **Manual test: Verify incremental updates work** (pending full integration)
 
 #### 3.3 Git Hooks Integration
 - [ ] Create `hooks/post-commit` script
@@ -374,14 +374,21 @@ When integration tests fail, you end up manually testing anyway to understand wh
   - logger.ts enhanced with JSON mode
   - config.ts enhanced with validation
   - 48 test cases, 100% pass rate
+- **Phase 3.1 & 3.2: Watch System & Incremental Scanning (Foundations)** (2025-09-30)
+  - debounce.ts utility with 10 test cases
+  - incremental-scanner.ts with 10 test cases
+  - file-watcher.ts using Deno.watchFs
+  - watch command CLI integrated
+  - 68 total test cases, 100% pass rate
 
 ### 🚧 In Progress
-- None currently
+- **Phase 3.2: Complete integration** with scanner and database
 
 ### 📋 Up Next
-- Phase 1.1: Restructure project layout
-- Phase 1.2: Extract library modules
-- **Phase 3: File Watching & Incremental Updates** (recommended next)
+- Complete Phase 3.2: Integrate watch system with scanner + database
+- Phase 3.3: Git Hooks Integration
+- Phase 1.1: Restructure project layout (optional)
+- Phase 1.2: Extract library modules (optional)
 
 ---
 
