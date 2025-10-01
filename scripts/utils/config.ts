@@ -84,11 +84,69 @@ class ConfigManager {
   }
 
   set<K extends keyof Config>(key: K, value: Config[K]): void {
+    // Validate the value before setting
+    this.validateSingleValue(key, value);
     this.config[key] = value;
   }
 
   reload(): void {
     this.config = this.loadConfig();
+  }
+
+  /**
+   * Validate all configuration values
+   * @returns Array of error messages (empty if valid)
+   */
+  async validate(): Promise<string[]> {
+    const errors: string[] = [];
+
+    // Validate database paths exist
+    try {
+      await Deno.stat(this.config.kuzuDbPath);
+    } catch {
+      errors.push(`kuzuDbPath does not exist: ${this.config.kuzuDbPath}`);
+    }
+
+    try {
+      await Deno.stat(this.config.duckdbPath);
+    } catch {
+      errors.push(`duckdbPath does not exist: ${this.config.duckdbPath}`);
+    }
+
+    return errors;
+  }
+
+  /**
+   * Validate a single config value
+   * @throws Error if validation fails
+   */
+  private validateSingleValue<K extends keyof Config>(key: K, value: Config[K]): void {
+    // Numeric validations
+    if (typeof value === "number") {
+      // All numbers must be positive
+      if (value < 0) {
+        throw new Error(`${String(key)} must be positive`);
+      }
+
+      // Specific validations
+      if (key === "agentContextWindow" || key === "agentMaxFiles") {
+        if (value === 0) {
+          throw new Error(`${String(key)} must be positive`);
+        }
+      }
+
+      if (key === "watchDebounceMs") {
+        if (value < 50) {
+          throw new Error(`watchDebounceMs must be at least 50ms`);
+        }
+      }
+
+      if (key === "analysisMaxDepth") {
+        if (value < 1 || value > 10) {
+          throw new Error(`analysisMaxDepth must be between 1 and 10`);
+        }
+      }
+    }
   }
 }
 

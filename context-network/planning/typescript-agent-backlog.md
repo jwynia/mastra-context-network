@@ -43,13 +43,13 @@ When integration tests fail, you end up manually testing anyway to understand wh
 - [ ] Add proper TypeScript interfaces for all data structures
 - [ ] **Unit test pure functions in these modules**
 
-#### 1.3 Implement Core Utilities
-- [ ] Create `utils/logger.ts` with levels and formatting
-- [ ] Create `utils/cache.ts` for query result caching
-- [ ] Create `utils/git.ts` for git operations
-- [ ] Create `utils/file-hash.ts` for incremental scanning
-- [ ] Create `utils/config.ts` for configuration management
-- [ ] **Unit test utility functions**
+#### 1.3 Implement Core Utilities ✅
+- [x] Create `utils/logger.ts` with levels and formatting
+- [x] Create `utils/cache.ts` for query result caching
+- [x] Create `utils/git.ts` for git operations
+- [x] Create `utils/file-hash.ts` for incremental scanning
+- [x] Create `utils/config.ts` for configuration management
+- [x] **Unit test utility functions**
 
 ---
 
@@ -369,6 +369,11 @@ When integration tests fail, you end up manually testing anyway to understand wh
 - Basic scan-codebase.ts implementation
 - Environment setup (Deno + Node)
 - Configuration files
+- **Phase 1.3: Core Utilities** (2025-09-30)
+  - file-hash.ts, git.ts, cache.ts created
+  - logger.ts enhanced with JSON mode
+  - config.ts enhanced with validation
+  - 48 test cases, 100% pass rate
 
 ### 🚧 In Progress
 - None currently
@@ -376,7 +381,7 @@ When integration tests fail, you end up manually testing anyway to understand wh
 ### 📋 Up Next
 - Phase 1.1: Restructure project layout
 - Phase 1.2: Extract library modules
-- Phase 1.3: Implement core utilities
+- **Phase 3: File Watching & Incremental Updates** (recommended next)
 
 ---
 

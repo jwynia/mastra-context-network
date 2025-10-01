@@ -32,6 +32,7 @@
     "clean": "echo 'Not yet implemented: scripts/utils/clean.ts'",
     "init": "deno run -A scripts/init.ts",
     "doctor": "deno run -A scripts/cli.ts doctor",
+    "test": "deno test --allow-all scripts/**/*.test.ts",
 
     "// Benchmarking": "",
     "bench:all": "deno bench bench/",
