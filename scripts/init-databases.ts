@@ -213,6 +213,15 @@ CREATE TABLE IF NOT EXISTS file_metrics (
   last_analyzed TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- File hash tracking for incremental scanning
+CREATE TABLE IF NOT EXISTS file_hashes (
+  file_path VARCHAR PRIMARY KEY,
+  hash VARCHAR NOT NULL,
+  last_scanned TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  git_sha VARCHAR,
+  file_size INTEGER
+);
+
 -- Dependency metrics
 CREATE TABLE IF NOT EXISTS dependency_metrics (
   from_file VARCHAR,
@@ -268,6 +277,7 @@ CREATE INDEX IF NOT EXISTS idx_file_metrics_complexity ON file_metrics(complexit
 CREATE INDEX IF NOT EXISTS idx_dependency_circular ON dependency_metrics(is_circular);
 CREATE INDEX IF NOT EXISTS idx_duplication_similarity ON code_duplication(similarity);
 CREATE INDEX IF NOT EXISTS idx_analysis_history_type ON analysis_history(analysis_type, start_time);
+CREATE INDEX IF NOT EXISTS idx_file_hashes_last_scanned ON file_hashes(last_scanned);
 `;
 
     // Execute schema

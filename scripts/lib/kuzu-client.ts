@@ -439,6 +439,128 @@ export class KuzuClient {
   }
 
   /**
+   * Delete all symbols for a specific file
+   */
+  async deleteSymbolsByFile(filePath: string): Promise<void> {
+    logger.debug(`Deleting symbols for file: ${filePath}`);
+
+    // First, delete relationships connected to symbols from this file
+    // This prevents orphaned relationships
+    const deleteRelQuery = `
+      MATCH (s:Symbol)-[r]->()
+      WHERE s.file = '${this.escapeCypher(filePath)}'
+      DELETE r;
+    `;
+
+    const deleteRelQuery2 = `
+      MATCH ()-[r]->(s:Symbol)
+      WHERE s.file = '${this.escapeCypher(filePath)}'
+      DELETE r;
+    `;
+
+    // Delete the symbols themselves
+    const deleteSymbolsQuery = `
+      MATCH (s:Symbol)
+      WHERE s.file = '${this.escapeCypher(filePath)}'
+      DELETE s;
+    `;
+
+    try {
+      await this.query(deleteRelQuery);
+      await this.query(deleteRelQuery2);
+      await this.query(deleteSymbolsQuery);
+      logger.debug(`Deleted all symbols for ${filePath}`);
+    } catch (error) {
+      logger.warn(`Failed to delete symbols for ${filePath}: ${error}`);
+    }
+  }
+
+  /**
+   * Delete all types for a specific file
+   */
+  async deleteTypesByFile(filePath: string): Promise<void> {
+    logger.debug(`Deleting types for file: ${filePath}`);
+
+    // Delete relationships to types from this file
+    const deleteRelQuery = `
+      MATCH (t:Type)-[r]->()
+      WHERE t.file_path = '${this.escapeCypher(filePath)}'
+      DELETE r;
+    `;
+
+    const deleteRelQuery2 = `
+      MATCH ()-[r]->(t:Type)
+      WHERE t.file_path = '${this.escapeCypher(filePath)}'
+      DELETE r;
+    `;
+
+    // Delete the types themselves
+    const deleteTypesQuery = `
+      MATCH (t:Type)
+      WHERE t.file_path = '${this.escapeCypher(filePath)}'
+      DELETE t;
+    `;
+
+    try {
+      await this.query(deleteRelQuery);
+      await this.query(deleteRelQuery2);
+      await this.query(deleteTypesQuery);
+      logger.debug(`Deleted all types for ${filePath}`);
+    } catch (error) {
+      logger.warn(`Failed to delete types for ${filePath}: ${error}`);
+    }
+  }
+
+  /**
+   * Delete all imports for a specific file
+   */
+  async deleteImportsByFile(filePath: string): Promise<void> {
+    logger.debug(`Deleting imports for file: ${filePath}`);
+
+    // Delete relationships to imports from this file
+    const deleteRelQuery = `
+      MATCH (i:Import)-[r]->()
+      WHERE i.source_file = '${this.escapeCypher(filePath)}'
+      DELETE r;
+    `;
+
+    const deleteRelQuery2 = `
+      MATCH ()-[r]->(i:Import)
+      WHERE i.source_file = '${this.escapeCypher(filePath)}'
+      DELETE r;
+    `;
+
+    // Delete the imports themselves
+    const deleteImportsQuery = `
+      MATCH (i:Import)
+      WHERE i.source_file = '${this.escapeCypher(filePath)}'
+      DELETE i;
+    `;
+
+    try {
+      await this.query(deleteRelQuery);
+      await this.query(deleteRelQuery2);
+      await this.query(deleteImportsQuery);
+      logger.debug(`Deleted all imports for ${filePath}`);
+    } catch (error) {
+      logger.warn(`Failed to delete imports for ${filePath}: ${error}`);
+    }
+  }
+
+  /**
+   * Delete all data for a specific file (symbols, types, imports, relationships)
+   */
+  async deleteFileData(filePath: string): Promise<void> {
+    logger.info(`Removing all data for deleted file: ${filePath}`);
+
+    await this.deleteSymbolsByFile(filePath);
+    await this.deleteTypesByFile(filePath);
+    await this.deleteImportsByFile(filePath);
+
+    logger.success(`Cleaned up all data for ${filePath}`);
+  }
+
+  /**
    * Parse a symbol node from query result
    */
   private parseSymbolNode(nodeStr: string): ExtractedSymbol {
@@ -446,11 +568,11 @@ export class KuzuClient {
     // This is a simplified parser - adjust based on actual Kuzu output format
     const props: any = {};
     const matches = nodeStr.match(/{([^}]+)}/);
-    
+
     if (matches) {
       const propsStr = matches[1];
       const propPairs = propsStr.split(',').map(p => p.trim());
-      
+
       for (const pair of propPairs) {
         const [key, value] = pair.split(':').map(s => s.trim());
         props[key] = value.replace(/^['"]|['"]$/g, '');

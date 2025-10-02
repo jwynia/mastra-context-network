@@ -1,105 +1,406 @@
-# TypeScript LLM Agent Context Network Template
-This project is a specialized template for building intelligent TypeScript agents using the Mastra framework with OpenRouter as the model provider (more info at https://jwynia.github.io/context-networks/). It provides a structured approach to managing the complex web of decisions, designs, and domain knowledge that underlies LLM agent development.
+# TypeScript Code Analysis Template
 
-Unlike generic context networks, this template is tailored to address the unique knowledge management challenges of LLM agent development: model selection strategies, agent architecture patterns, tool integration complexities, workflow orchestration decisions, and the gap between "how we designed the agent" and "what we built" creates dangerous knowledge silos in the rapidly evolving AI agent ecosystem.
+A complete foundation for building TypeScript code analysis tools with semantic graph databases, incremental file watching, and natural language queries.
 
-## Project Structure
+## 🚀 What This Template Provides
 
-This template uses a clear separation between planning and implementation:
+**Semantic Code Analysis:**
+- AST parsing for TypeScript/JavaScript
+- Symbol extraction (functions, classes, types, interfaces)
+- Relationship tracking (calls, imports, extends, implements)
+- Type hierarchy analysis
+
+**Graph Database (Kuzu):**
+- Semantic relationships stored as a graph
+- Cypher query support
+- Fast relationship traversal
+- Historical code analysis (git SHA tracking)
+
+**Analytics Database (DuckDB):**
+- File-level metrics (lines, complexity, dependencies)
+- Performance benchmarks
+- Code quality trends
+- Incremental scan tracking
+
+**Incremental Development Workflow:**
+- File watching with automatic rescanning
+- Hash-based change detection
+- Database persistence across restarts
+- Deletion handling (clean removal from databases)
+
+**Natural Language Queries:**
+- "who calls fetchUser"
+- "show exports of src/utils/helper.ts"
+- "dependencies of app.ts"
+- 13 query templates + raw Cypher support
+
+## ⚡ Quick Start (5 Minutes)
+
+### 1. Prerequisites
+
+```bash
+# Deno runtime
+curl -fsSL https://deno.land/install.sh | sh
+
+# Kuzu database
+# (Installation varies by platform - see https://kuzudb.com)
+
+# DuckDB
+brew install duckdb  # macOS
+# or download from https://duckdb.org
+```
+
+### 2. Initialize Databases
+
+```bash
+# Create database schemas
+deno task db:init
+```
+
+### 3. Initial Scan
+
+```bash
+# Scan your codebase (this repo or any TypeScript project)
+deno task scan
+
+# Or scan a specific directory
+deno task scan --path ./src
+```
+
+### 4. Start Watching (Optional)
+
+```bash
+# Enable incremental development mode
+deno task watch
+
+# Now edit files - changes auto-update the databases!
+```
+
+### 5. Query Your Code
+
+```bash
+# Natural language queries
+deno task query "who calls initialize"
+deno task query "show classes"
+deno task query "exports in src/lib/scanner.ts"
+
+# Use templates
+deno task query -t find-callers initialize
+deno task query -t find-dependencies src/app.ts
+
+# Raw Cypher
+deno task query "MATCH (n:Symbol) WHERE n.exported = true RETURN n.name, n.file LIMIT 10"
+
+# Get help
+deno task query --nl-help
+deno task query --templates
+```
+
+## 📚 Available Commands
+
+### Scanning
+
+```bash
+# Full scan
+deno task scan
+
+# Incremental scan (only changed files)
+deno task scan --incremental
+
+# Scan specific path
+deno task scan --path ./src
+
+# Clear and rescan
+deno task scan --clear
+
+# Verbose output
+deno task scan --verbose
+```
+
+### Querying
+
+```bash
+# Natural language
+deno task query "who calls myFunction"
+
+# Templates (see --templates for full list)
+deno task query -t find-callers myFunction
+deno task query -t find-classes
+deno task query -t find-unused-exports
+
+# Format options
+deno task query "show classes" -f json
+deno task query "show classes" -f tree
+deno task query "show classes" -f count
+
+# Enable caching (5min TTL)
+deno task query "expensive query" --cache
+
+# Verbose mode
+deno task query "any query" -v
+```
+
+### Watching
+
+```bash
+# Watch current directory
+deno task watch
+
+# Watch specific path
+deno task watch --path src
+
+# Custom debounce (default 500ms)
+deno task watch --debounce 1000
+
+# Exclude patterns
+deno task watch --exclude "*.test.ts,**/generated/**"
+
+# Verbose logging
+deno task watch --verbose
+```
+
+## 🏗️ Architecture
 
 ```
-project-root/
-├── .context-network.md          # Discovery file
-├── README.md                    # This file
-├── .gitignore                   # Root-level git ignores
-├── .devcontainer/               # Development container config
-├── context-network/             # All planning & architecture docs
-└── app/                         # Your TypeScript LLM agent project goes here
+TypeScript/JavaScript Code
+         ↓
+    AST Parser (ts-morph)
+         ↓
+    ┌─────────┴─────────┐
+    ↓                   ↓
+Kuzu (Graph DB)    DuckDB (Analytics)
+ - Symbols           - Metrics
+ - Types             - Complexity
+ - Relationships     - Trends
+    ↓                   ↓
+    └─────────┬─────────┘
+              ↓
+      Query System
+   (NL + Cypher + Templates)
 ```
 
-The `app/` directory is where your actual TypeScript LLM agent project will live - everything that would normally be in a Mastra agent project root. This keeps the context network and development tooling separate from your agent implementation code.
+### Key Components
 
-## Getting Started
+**Scripts:**
+- `scripts/commands/` - CLI commands (scan, watch, query)
+- `scripts/lib/` - Core libraries (AST analyzer, DB clients, query builder)
+- `scripts/utils/` - Utilities (hashing, git, caching, logging)
 
-To use this TypeScript LLM Agent context network template:
+**Databases:**
+- `.kuzu/` - Semantic graph database
+- `.duckdb/` - Analytics database
 
-1. **Clone this template** for your new TypeScript LLM agent project
-2. **Connect with an LLM agent** that has file access to all files in the project folder (via IDE coding tools like Cursor or VSCode with Cline)
-3. **Set up the prompts** (see below) to ensure the agent understands context networks
-4. **Initialize your agent project** in the `app/` directory using Mastra:
-   - `cd app && npm init` for a basic TypeScript project
-   - `cd app && npm install @mastra/core @mastra/cli` for Mastra framework
-   - `cd app && npx @mastra/cli init` to initialize Mastra project structure
-   - Set up OpenRouter API key: `export OPENROUTER_API_KEY=your_key_here`
-5. **Start a planning conversation** describing your LLM agent goals, capabilities, and constraints
-6. **Let the agent enhance the context network** with your project-specific agent information
-7. **Begin development tasks** with clear separation between planning (context network) and implementation (app/)
+**Context Network:**
+- `context-network/` - Project documentation and architecture
 
-This template maintains a clear boundary between knowledge artifacts (context network) and implementation artifacts (app/), allowing your team to document "why" and "how" separately from the TypeScript agent code that represents "what is."
+## 🎯 Common Use Cases
 
-## Cost
-Because context networks are a relatively cutting-edge approach to collaboration with LLM AI agents, these tools do cost money and some of the best of them can cost more money than you may be expecting. The costs on such things are dropping and much of what we're doing with context networks is figuring out the ways to work that will be more widespread next year and beyond, when these costs drop. If these tools are too expensive for your budget, that probably means you need to wait a bit.
+### 1. Find All Callers of a Function
 
-## Tools
-Cursor (https://www.cursor.com/) is an all-in-one that comes with LLM chat and an agent that can act on the files.
+```bash
+deno task query "who calls processPayment"
+```
 
-Cursor is built on VSCode (https://code.visualstudio.com/), which is a more generic code/text editor that can have plugins added. One we use a lot with context networks is Cline (https://cline.bot/). Cline's agent can be pointed at a wide range of LLM APIs that you use your own keys/billing for or their own management of that. For LLM agent development, we recommend using OpenRouter (https://openrouter.ai/) which provides access to multiple LLM providers through a unified API, perfect for building agents that need access to different models for different tasks.
+### 2. Analyze Dependencies
 
-## Patterns
-### Prompts
-For whatever agent you use, you need to include instructions in the system prompt or custom instructions that tell it about context networks and how to navigate them. The prompt in /inbox/custom-instructions-prompt.md is the one a lot of people are using for Cline with Claude Sonnet as the model.
+```bash
+# What does this file import?
+deno task query "dependencies of src/api/client.ts"
 
-Add it in either your agent's configuration screen or via its file-based prompt management system.
+# Who imports this file?
+deno task query "dependents of src/utils/logger.ts"
+```
 
-### TypeScript LLM Agent Specific Documentation Patterns
-This template includes specialized patterns for LLM agent documentation:
+### 3. Find Unused Exports
 
-1. **Agent Architecture Decision Records** - Document agent design patterns and model selection choices
-2. **Tool Integration Strategies** - Document tool composition, external API integrations, and capability decisions
-3. **Workflow Orchestration Patterns** - Document step-based execution, branching logic, and parallel processing
-4. **Model Selection Guidelines** - Document OpenRouter model choices, cost optimization, and performance tuning
-5. **Memory Management Strategy** - Document conversation persistence, context handling, and semantic search
-6. **Security and Safety Patterns** - Document prompt injection protection, input sanitization, and API security
-7. **Agent Performance Registry** - Track model performance, cost optimization, and capability improvements
+```bash
+deno task query "unused exports"
+```
 
-### Plan/Act and Specific Scope
-Cline and many other agents have multiple modes, usually offering one that lets you have a conversation with it separate from it taking action on files. In Cline, that's "Plan". In that mode, it won't make any changes to your files.
+### 4. Explore Type Hierarchy
 
-Use that mode aggressively to get to a specific plan for what will happen when you toggle to act. That plan should have a clear definition of what "done" will look like, should be as close to a single action as possible.
+```bash
+deno task query "what extends BaseController"
+deno task query "implementations of IRepository"
+```
 
-That often means that the action is to detail out a list of tasks that you'll actually have the agent do separately, one at a time. The "do one thing" can mean break the existing scope down another level to get to a more detailed plan. 
+### 5. Visualize Call Graphs
 
-Basically, the more specific the action that Act mode or its equivalent is given, the better job it will do at managing token budget, at not volunteering to do a bunch of extra things,  and the more likely it does something you've already had a chance to approve.
+```bash
+deno task query "call graph of initialize depth 3" -f tree
+```
 
-### Monitor and Interrupt
-The more you actually read and monitor what your agent is doing for anything that you disagree with or sounds incorrect and step in to interrupt, the better your context network will mature. Like hiring a new assistant, where for the first few weeks, you have to tell them your preferences and ways you want things done, it pays off over the long haul.
+### 6. Monitor Code Changes
 
-Interrupt, flip to Plan mode, and ask things like:
+```bash
+# Terminal 1: Start watching
+deno task watch
 
-* How can we document into the context network a way of working so we don't repeat (the problem/misunderstanding above)?
-* I'd really prefer we always write out a plan with tasks before doing things ad hoc. How can we clarify what's in the context network to make that our process going forward?
+# Terminal 2: Edit code, watch auto-updates databases
+# Terminal 3: Query updated data
+deno task query "show symbols in file-you-just-edited.ts"
+```
 
+## 🔧 Customization
 
-### Retrospective
-At the end of tasks and periodically AS a new task, ask how things could be improved. For task end, "What from this conversation and task should be documented in the context network?" For periodic retrospectives, "What have we learned in this project that could be used to improve the context network for our efforts going forward?"
+### Adding New Query Templates
 
-## TypeScript LLM Agent Project Success Metrics
+Edit `scripts/lib/query-builder.ts`:
 
-This context network template helps measure success through:
+```typescript
+export class QueryTemplates {
+  static myCustomQuery(param: string): QueryBuilder {
+    return new QueryBuilder()
+      .match("(n:Symbol)")
+      .where(`n.name = '${this.escapeCypher(param)}'`)
+      .return("n.name", "n.file", "n.line")
+      .orderBy("n.file");
+  }
+}
+```
 
-- **Time to first functional agent** for new LLM agent developers
-- **Agent architecture decision speed** and confidence
-- **Model selection consistency** and cost optimization across team members
-- **Frequency of "archaeology" requests** (digging for lost agent design knowledge)
-- **Documentation coverage** of agents, tools, workflows, and integrations
-- **Decision traceability** for model choices and agent architecture decisions
-- **Documentation update frequency** relative to agent code and capability changes
-- **Developer confidence** in building and modifying intelligent agents
-- **Stakeholder understanding** of agent capabilities, limitations, and costs
-- **Reduction in repeated LLM integration and agent architecture mistakes**
-- **Tool integration management** clarity and reliability
-- **Agent deployment and monitoring** understanding and effectiveness
-- **Cost optimization** through intelligent model selection and usage patterns
-- **Agent response quality** and consistency improvements over time
+### Adding Natural Language Patterns
 
-By maintaining a well-structured context network alongside your TypeScript LLM agent codebase, your team builds a shared brain that enables faster agent development, better architectural decisions, and more confident evolution of intelligent agent systems in the rapidly advancing AI ecosystem.
+Edit `scripts/lib/natural-language-parser.ts`:
+
+```typescript
+// In NaturalLanguageParser.parse():
+if (this.matchPattern(normalized, ["my pattern", "alternative pattern"])) {
+  const extracted = this.extractSymbolName(normalized, ["my pattern"]);
+  return {
+    builder: QueryTemplates.myCustomQuery(extracted),
+    pattern: "my-pattern",
+    confidence: 0.9,
+  };
+}
+```
+
+### Adding New Commands
+
+1. Create `scripts/commands/my-command.ts`
+2. Export a Cliffy `Command`
+3. Register in `scripts/cli.ts`:
+
+```typescript
+import { myCommand } from "./commands/my-command.ts";
+
+cli.command("my-command", myCommand);
+```
+
+See `docs/adding-commands.md` for detailed guide.
+
+## 📖 Documentation
+
+- **[First Sprint Guide](docs/first-sprint.md)** - Recommended tasks for your first 1-2 weeks
+- **[Adding Commands](docs/adding-commands.md)** - How to extend the CLI
+- **[Query Guide](docs/query-guide.md)** - Complete query reference
+- **[Context Network](context-network/discovery.md)** - Architecture and design docs
+
+## 🧪 Testing
+
+```bash
+# Run all tests
+deno task test
+
+# Run specific test file
+deno test scripts/utils/debounce.test.ts
+
+# Watch mode
+deno test --watch
+```
+
+## 🛠️ Development
+
+### Project Structure
+
+```
+.
+├── scripts/
+│   ├── commands/        # CLI commands
+│   │   ├── scan.ts     # Code scanner
+│   │   ├── watch.ts    # File watcher
+│   │   └── query.ts    # Query system
+│   ├── lib/            # Core libraries
+│   │   ├── ast-analyzer.ts
+│   │   ├── kuzu-client.ts
+│   │   ├── duckdb-client.ts
+│   │   ├── query-builder.ts
+│   │   └── natural-language-parser.ts
+│   └── utils/          # Utilities
+│       ├── file-hash.ts
+│       ├── git.ts
+│       ├── cache.ts
+│       └── logger.ts
+├── context-network/    # Documentation
+├── docs/              # User guides
+└── deno.json          # Configuration
+```
+
+### Database Schemas
+
+**Kuzu (Graph):**
+- Symbol nodes (functions, classes, interfaces)
+- Type nodes (type definitions)
+- Import nodes (import statements)
+- Relationships (CALLS, EXTENDS, IMPLEMENTS, DEPENDS_ON, etc.)
+
+**DuckDB (Analytics):**
+- file_metrics - Lines, complexity, counts
+- file_hashes - Change tracking
+- symbol_complexity - Per-symbol metrics
+- analysis_history - Scan history
+
+## 🚦 What's Included vs. What You Build
+
+### ✅ Included in Template
+
+**Phase 1-3 (Core Foundation):**
+- Complete database setup (Kuzu + DuckDB)
+- AST scanning and symbol extraction
+- Incremental file watching
+- Hash-based change detection
+- Deletion handling
+- Query system with NL support
+- CLI framework
+- Core utilities
+
+### 🏗️ Build in Your Project
+
+**Phase 4-12 (Project-Specific Features):**
+- Type system analysis
+- Dependency analysis
+- Pattern finding and refactoring
+- Test intelligence
+- Performance profiling
+- Architecture validation
+- Documentation generation
+- Migration tools
+
+See `context-network/planning/typescript-agent-backlog.md` for complete roadmap.
+
+## 🎁 What Makes This Template Valuable
+
+1. **Incremental Development** - Watch mode means databases stay current automatically
+2. **Natural Language Queries** - No Cypher knowledge required for common tasks
+3. **Production-Ready Patterns** - TDD, error handling, logging, caching
+4. **Extensible** - Add your domain-specific features on solid foundation
+5. **Well-Documented** - Context network captures architectural decisions
+
+## 🤝 Contributing
+
+This is a template - fork it and make it yours! If you build something cool on top of it, share it back.
+
+## 📜 License
+
+MIT
+
+## 🔗 Links
+
+- **Kuzu Database**: https://kuzudb.com
+- **DuckDB**: https://duckdb.org
+- **Deno**: https://deno.land
+- **ts-morph** (AST parsing): https://ts-morph.com
+
+---
+
+**Ready to build your code analysis tool? Start with the [First Sprint Guide](docs/first-sprint.md)!**

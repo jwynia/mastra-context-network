@@ -15,6 +15,8 @@ import { kuzuClient } from "../lib/kuzu-client.ts";
 import { duckdbClient, type FileMetrics } from "../lib/duckdb-client.ts";
 import { logger } from "../utils/logger.ts";
 import { config } from "../utils/config.ts";
+import { hashFile } from "../utils/file-hash.ts";
+import { getCurrentSha, isGitRepo } from "../utils/git.ts";
 
 interface ScanOptions {
   path: string;
@@ -24,9 +26,10 @@ interface ScanOptions {
   exclude?: string[];
   maxDepth?: number;
   clear?: boolean;
+  files?: string[]; // Specific files to scan (for watch integration)
 }
 
-class CodebaseScanner {
+export class CodebaseScanner {
   private analyzer: ASTAnalyzer;
   private options: ScanOptions;
   private fileCount = 0;
@@ -34,6 +37,8 @@ class CodebaseScanner {
   private typeCount = 0;
   private importCount = 0;
   private relationshipCount = 0;
+  private gitSha?: string;
+  private scannedHashes: Record<string, string> = {}; // Track hashes of scanned files
 
   constructor(options: ScanOptions) {
     this.options = options;
@@ -55,13 +60,23 @@ class CodebaseScanner {
     // Initialize databases
     await this.initializeDatabases();
 
+    // Get git SHA if available
+    if (await isGitRepo()) {
+      try {
+        this.gitSha = await getCurrentSha();
+        logger.debug(`Git SHA: ${this.gitSha}`);
+      } catch {
+        logger.debug("Could not get git SHA");
+      }
+    }
+
     // Clear existing data if requested
     if (this.options.clear) {
       await this.clearData();
     }
 
     // Collect files to scan
-    const files = await this.collectFiles();
+    const files = this.options.files || await this.collectFiles();
 
     if (files.length === 0) {
       logger.warn("No TypeScript/JavaScript files found to scan");
@@ -73,6 +88,12 @@ class CodebaseScanner {
     // Process files
     for (const file of files) {
       await this.processFile(file);
+    }
+
+    // Persist file hashes to database
+    if (Object.keys(this.scannedHashes).length > 0) {
+      await duckdbClient.upsertFileHashes(this.scannedHashes, this.gitSha);
+      logger.debug(`Persisted ${Object.keys(this.scannedHashes).length} file hashes`);
     }
 
     // Report results
@@ -204,19 +225,18 @@ class CodebaseScanner {
 
   private async checkIfFileNeedsScanning(filePath: string): Promise<boolean> {
     try {
-      const fileInfo = await Deno.stat(filePath);
-      const existingMetrics = await duckdbClient.getFileMetrics(filePath);
+      // Calculate current file hash
+      const currentHash = await hashFile(filePath);
 
-      if (!existingMetrics) {
+      // Get previous hash from database
+      const previousHash = await duckdbClient.getFileHash(filePath);
+
+      if (!previousHash) {
         return true; // File not in database
       }
 
-      // Check if file has changed since last analysis
-      if (existingMetrics.lastAnalyzed) {
-        return fileInfo.mtime!.getTime() > existingMetrics.lastAnalyzed.getTime();
-      }
-
-      return true; // No last analyzed date, rescan
+      // Compare hashes
+      return currentHash !== previousHash;
     } catch {
       return true; // Scan on error
     }
@@ -299,6 +319,10 @@ class CodebaseScanner {
     };
 
     await duckdbClient.insertFileMetrics([metrics]);
+
+    // Track file hash for this scan
+    const fileHash = await hashFile(filePath);
+    this.scannedHashes[filePath] = fileHash;
   }
 
   private async reportResults(): Promise<void> {

@@ -1,217 +1,299 @@
-#!/usr/bin/env -S deno run --allow-run --allow-env --allow-read --allow-write
+#!/usr/bin/env -S deno run --allow-all
 
 /**
- * Kuzu database query helper - TypeScript/Deno version
- * Replaces the Python script with pure TypeScript
+ * Enhanced Query Command
+ * Supports natural language queries, query templates, and raw Cypher
  */
 
-import { parse } from "@std/flags";
-import { exec } from "https://deno.land/x/exec@0.0.5/mod.ts";
+import { Command } from "@cliffy/command/mod.ts";
+import { Table } from "@cliffy/table/mod.ts";
+import { kuzuClient, type QueryResult } from "../lib/kuzu-client.ts";
+import { QueryBuilder, QueryTemplates } from "../lib/query-builder.ts";
+import { NaturalLanguageParser } from "../lib/natural-language-parser.ts";
+import { cache } from "../utils/cache.ts";
+import { logger } from "../utils/logger.ts";
 
-interface QueryOptions {
-  query: string;
-  format?: "json" | "csv" | "table";
-  database?: string;
-  output?: string;
+interface QueryCommandOptions {
+  query?: string;
+  template?: string;
+  format?: "table" | "json" | "tree" | "count";
+  cache?: boolean;
+  verbose?: boolean;
 }
 
-async function executeKuzuQuery(options: QueryOptions) {
-  const dbPath = options.database || Deno.env.get("KUZU_DB_PATH") || "/workspace/.kuzu-db";
-  
-  // Build the kuzu CLI command
-  const kuzuCommand = [
-    "kuzu",
-    dbPath,
-    "-c",
-    options.query
-  ];
+/**
+ * Execute a query and format results
+ */
+async function executeQuery(
+  queryString: string,
+  options: QueryCommandOptions
+): Promise<void> {
+  const startTime = Date.now();
 
-  if (options.format === "csv") {
-    kuzuCommand.push("--csv");
+  // Check cache if enabled
+  const cacheKey = `query:${queryString}`;
+  if (options.cache) {
+    const cached = await cache.get<QueryResult>(cacheKey);
+    if (cached) {
+      logger.debug("Using cached result");
+      formatResults(cached, options);
+      return;
+    }
   }
 
+  // Initialize Kuzu client
+  await kuzuClient.initialize();
+
+  // Execute query
   try {
-    const result = await exec(kuzuCommand.join(" "));
-    
-    if (options.format === "json") {
-      // Parse the output and convert to JSON
-      const lines = result.output.trim().split("\n");
-      const parsed = parseKuzuOutput(lines);
-      const jsonOutput = JSON.stringify(parsed, null, 2);
-      
-      if (options.output) {
-        await Deno.writeTextFile(options.output, jsonOutput);
-        console.log(`Output written to ${options.output}`);
-      } else {
-        console.log(jsonOutput);
-      }
-    } else {
-      console.log(result.output);
+    const result = await kuzuClient.query(queryString);
+    const executionTime = Date.now() - startTime;
+
+    // Cache result if enabled
+    if (options.cache) {
+      await cache.set(cacheKey, result, { ttl: 300 }); // 5 minute TTL
+    }
+
+    // Format and display results
+    formatResults(result, options);
+
+    // Show execution time in verbose mode
+    if (options.verbose) {
+      logger.debug(`Query executed in ${executionTime}ms`);
+      logger.debug(`Returned ${result.rowCount} rows`);
     }
   } catch (error) {
-    console.error("Error executing Kuzu query:", error);
+    logger.error(`Query failed: ${error.message}`);
+    if (options.verbose) {
+      logger.error(`Query: ${queryString}`);
+    }
     Deno.exit(1);
   }
 }
 
-function parseKuzuOutput(lines: string[]): any[] {
-  // Parse Kuzu table output into JSON
-  // Skip header and separator lines
-  const dataLines = lines.filter(line => 
-    line.trim() && 
-    !line.startsWith("+") && 
-    !line.startsWith("|---")
-  );
-  
-  if (dataLines.length === 0) return [];
-  
-  // Extract headers
-  const headerLine = dataLines[0];
-  const headers = headerLine.split("|")
-    .map(h => h.trim())
-    .filter(h => h);
-  
-  // Parse data rows
-  const results = [];
-  for (let i = 1; i < dataLines.length; i++) {
-    const values = dataLines[i].split("|")
-      .map(v => v.trim())
-      .filter(v => v);
-    
-    if (values.length === headers.length) {
-      const row: any = {};
-      headers.forEach((header, idx) => {
-        row[header] = parseValue(values[idx]);
-      });
-      results.push(row);
+/**
+ * Format and display query results
+ */
+function formatResults(result: QueryResult, options: QueryCommandOptions): void {
+  if (result.rowCount === 0) {
+    logger.warn("No results found");
+    return;
+  }
+
+  switch (options.format) {
+    case "json":
+      console.log(JSON.stringify(result.rows, null, 2));
+      break;
+
+    case "count":
+      console.log(`${result.rowCount} results`);
+      break;
+
+    case "tree":
+      formatTree(result);
+      break;
+
+    case "table":
+    default:
+      formatTable(result);
+      break;
+  }
+}
+
+/**
+ * Format results as a table
+ */
+function formatTable(result: QueryResult): void {
+  if (result.columns.length === 0 || result.rows.length === 0) {
+    logger.warn("No data to display");
+    return;
+  }
+
+  const table = new Table()
+    .header(result.columns)
+    .body(result.rows.map(row => result.columns.map(col => formatValue(row[col]))));
+
+  table.render();
+}
+
+/**
+ * Format results as a tree (for hierarchical data)
+ */
+function formatTree(result: QueryResult): void {
+  // Group by first column if present
+  if (result.columns.length === 0) return;
+
+  const groups = new Map<string, any[]>();
+
+  for (const row of result.rows) {
+    const key = String(row[result.columns[0]]);
+    if (!groups.has(key)) {
+      groups.set(key, []);
+    }
+    groups.get(key)!.push(row);
+  }
+
+  for (const [key, rows] of groups.entries()) {
+    console.log(`\n${key}`);
+    for (const row of rows) {
+      const values = result.columns.slice(1).map(col => `${col}: ${formatValue(row[col])}`);
+      console.log(`  └─ ${values.join(", ")}`);
     }
   }
-  
-  return results;
 }
 
-function parseValue(value: string): any {
-  // Try to parse as number
-  if (/^-?\d+(\.\d+)?$/.test(value)) {
-    return parseFloat(value);
-  }
-  // Try to parse as boolean
-  if (value.toLowerCase() === "true") return true;
-  if (value.toLowerCase() === "false") return false;
-  // Try to parse as null
-  if (value.toLowerCase() === "null") return null;
-  // Return as string
-  return value;
+/**
+ * Format a value for display
+ */
+function formatValue(value: any): string {
+  if (value === null || value === undefined) return "-";
+  if (typeof value === "boolean") return value ? "✓" : "✗";
+  if (typeof value === "object") return JSON.stringify(value);
+  return String(value);
 }
 
-// Predefined useful queries
-const QUERY_TEMPLATES = {
-  "find-interface": (name: string) => 
-    `MATCH (s:Symbol {kind: 'interface', name: '${name}'}) RETURN s`,
-  
-  "find-implementations": (interfaceName: string) =>
-    `MATCH (i:Symbol {kind: 'interface', name: '${interfaceName}'})<-[:IMPLEMENTS]-(c:Symbol) RETURN c`,
-  
-  "find-extends": (className: string) =>
-    `MATCH (c:Symbol {name: '${className}'})-[:EXTENDS]->(p:Symbol) RETURN p`,
-  
-  "module-deps": (modulePath: string) =>
-    `MATCH (m:Module {path: '${modulePath}'})-[:IMPORTS]->(dep:Module) RETURN dep.path as dependency`,
-  
-  "unused-exports": () =>
-    `MATCH (s:Symbol {exported: true}) WHERE NOT EXISTS { MATCH (s)<-[:REFERENCES]-() } RETURN s.name as unused_export, s.file as file`,
-  
-  "circular-deps": () =>
-    `MATCH path = (m1:Module)-[:IMPORTS*2..10]->(m1) RETURN nodes(path) as circular_path`,
-  
-  "type-hierarchy": (typeName: string) =>
-    `MATCH path = (s:Symbol {name: '${typeName}'})-[:EXTENDS|IMPLEMENTS*]->(parent) RETURN path`
-};
-
-// Cliffy Command export for CLI router
-import { Command } from "https://deno.land/x/cliffy@v1.0.0-rc.4/command/mod.ts";
-
+/**
+ * Main query command
+ */
 export const queryCommand = new Command()
-  .description("Query the semantic graph database using natural language or Cypher")
+  .name("query")
+  .description("Query the semantic graph database")
   .arguments("[query:string]")
-  .option("-q, --query <query:string>", "Cypher query to execute")
-  .option("-t, --template <template:string>", "Use a predefined query template")
-  .option("-f, --format <format:string>", "Output format: json, csv, table", { default: "table" })
-  .option("-d, --database <path:string>", "Database path (defaults to KUZU_DB_PATH env)")
-  .option("-o, --output <file:string>", "Write output to file")
-  .example("Direct query", 'ts-agent query "MATCH (n:Symbol) RETURN n LIMIT 10"')
-  .example("Use template", 'ts-agent query -t find-interface User')
-  .example("JSON output", 'ts-agent query -q "MATCH (n) RETURN n" -f json')
-  .example("List templates", "ts-agent query --help")
-  .action(async (options, ...args) => {
-    let query: string;
+  .option("-q, --query <query:string>", "Cypher query or natural language")
+  .option("-t, --template <template:string>", "Use a query template")
+  .option("-f, --format <format:string>", "Output format", {
+    default: "table",
+  })
+  .option("--cache", "Enable query result caching (5min TTL)")
+  .option("-v, --verbose", "Show execution details")
+  .option("--nl-help", "Show natural language query help")
+  .option("--templates", "List available query templates")
+  .example("Natural language", 'query "who calls fetchUser"')
+  .example("Template", "query -t find-callers fetchUser")
+  .example("Raw Cypher", 'query "MATCH (n:Symbol) RETURN n LIMIT 10"')
+  .example("JSON output", 'query "show classes" -f json')
+  .action(async (options: QueryCommandOptions, ...args: string[]) => {
+    // Show NL help
+    if (options["nl-help"]) {
+      console.log(NaturalLanguageParser.getHelp());
+      return;
+    }
 
+    // Show templates
+    if (options["templates"]) {
+      showTemplates();
+      return;
+    }
+
+    // Get query from various sources
+    const inputQuery = options.query || args[0];
+
+    if (!inputQuery) {
+      logger.error("No query provided. Use --query, provide as argument, or --help for examples.");
+      Deno.exit(1);
+    }
+
+    // Parse query
+    let finalQuery: string;
+
+    // Check if template specified
     if (options.template) {
-      const template = QUERY_TEMPLATES[options.template as keyof typeof QUERY_TEMPLATES];
-
-      if (!template) {
-        console.error(`Unknown template: ${options.template}`);
-        console.log("Available templates:", Object.keys(QUERY_TEMPLATES).join(", "));
-        Deno.exit(1);
-      }
-
-      query = typeof template === "function"
-        ? (template as any)(...args)
-        : template;
+      finalQuery = getTemplateQuery(options.template, args);
     } else {
-      query = options.query || args[0]?.toString();
+      // Try natural language parsing first
+      const parsed = NaturalLanguageParser.parse(inputQuery);
 
-      if (!query) {
-        console.error("No query provided. Use --query or provide as argument.");
+      if (parsed.builder) {
+        if (options.verbose) {
+          logger.info(`Detected pattern: ${parsed.pattern} (confidence: ${parsed.confidence})`);
+        }
+        finalQuery = parsed.builder.build();
+      } else if (parsed.rawCypher) {
+        // Use as raw Cypher
+        finalQuery = parsed.rawCypher;
+      } else {
+        logger.error("Could not parse query");
         Deno.exit(1);
       }
     }
 
-    await executeKuzuQuery({
-      query,
-      format: options.format as any,
-      database: options.database,
-      output: options.output
-    });
+    if (options.verbose) {
+      logger.debug(`Executing query:\n${finalQuery}`);
+    }
+
+    // Execute the query
+    await executeQuery(finalQuery, options);
   });
 
-if (import.meta.main) {
-  const flags = parse(Deno.args, {
-    string: ["query", "q", "template", "t", "format", "f", "database", "d", "output", "o"],
-    default: {
-      format: "table"
-    }
-  });
+/**
+ * Get query from template
+ */
+function getTemplateQuery(templateName: string, args: string[]): string {
+  const templates: Record<string, (...args: string[]) => QueryBuilder> = {
+    "find-callers": (name: string) => QueryTemplates.findCallers(name),
+    "find-callees": (name: string) => QueryTemplates.findCallees(name),
+    "find-exports": (path: string) => QueryTemplates.findExports(path),
+    "find-imports": (path: string) => QueryTemplates.findImports(path),
+    "find-symbols": (path: string) => QueryTemplates.findSymbolsInFile(path),
+    "find-dependencies": (path: string) => QueryTemplates.findDependencies(path),
+    "find-dependents": (path: string) => QueryTemplates.findDependents(path),
+    "find-classes": () => QueryTemplates.findClasses(),
+    "find-members": (className: string) => QueryTemplates.findClassMembers(className),
+    "find-extends": (name: string) => QueryTemplates.findExtends(name),
+    "find-implementations": (name: string) => QueryTemplates.findImplementations(name),
+    "find-call-graph": (name: string, depth?: string) =>
+      QueryTemplates.findCallGraph(name, depth ? parseInt(depth) : 2),
+    "find-unused-exports": () => QueryTemplates.findUnusedExports(),
+  };
 
-  let query: string;
-
-  if (flags.template || flags.t) {
-    const templateName = flags.template || flags.t;
-    const templateArgs = flags._.map(String);
-    const template = QUERY_TEMPLATES[templateName as keyof typeof QUERY_TEMPLATES];
-
-    if (!template) {
-      console.error(`Unknown template: ${templateName}`);
-      console.log("Available templates:", Object.keys(QUERY_TEMPLATES).join(", "));
-      Deno.exit(1);
-    }
-
-    query = typeof template === "function"
-      ? (template as any)(...templateArgs)
-      : template;
-  } else {
-    query = flags.query || flags.q || flags._[0]?.toString();
-
-    if (!query) {
-      console.error("No query provided. Use --query or -q flag.");
-      Deno.exit(1);
-    }
+  const template = templates[templateName];
+  if (!template) {
+    logger.error(`Unknown template: ${templateName}`);
+    logger.info(`Available templates: ${Object.keys(templates).join(", ")}`);
+    Deno.exit(1);
   }
 
-  await executeKuzuQuery({
-    query,
-    format: (flags.format || flags.f) as any,
-    database: flags.database || flags.d,
-    output: flags.output || flags.o
-  });
+  return template(...args).build();
+}
+
+/**
+ * Show available templates
+ */
+function showTemplates(): void {
+  console.log(`
+Available Query Templates:
+
+📞 Call Analysis:
+  find-callers <symbol>          - Find what calls a symbol
+  find-callees <symbol>          - Find what a symbol calls
+  find-call-graph <symbol> [depth] - Show call graph (default depth: 2)
+
+📦 Imports/Exports:
+  find-exports <file>            - Show exports from a file
+  find-imports <file>            - Show imports in a file
+  find-unused-exports            - Find exported but unused symbols
+
+🔗 Dependencies:
+  find-dependencies <file>       - Show what a file imports
+  find-dependents <file>         - Show what imports a file
+
+🏗️  Structure:
+  find-classes                   - List all classes
+  find-members <class>           - Show class members
+  find-symbols <file>            - List symbols in a file
+
+🔺 Type Hierarchy:
+  find-extends <symbol>          - Show what a symbol extends
+  find-implementations <type>    - Find implementations of an interface
+
+Usage:
+  query -t <template> [args...]
+  query -t find-callers fetchUser
+  query -t find-call-graph initialize 3
+`);
+}
+
+// Direct execution support
+if (import.meta.main) {
+  await queryCommand.parse(Deno.args);
 }

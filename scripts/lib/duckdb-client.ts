@@ -412,13 +412,110 @@ export class DuckDBClient {
    */
   async clearTable(tableName: string): Promise<void> {
     const validTables = ['metrics', 'file_metrics', 'query_performance', 'scan_history'];
-    
+
     if (!validTables.includes(tableName)) {
       throw new Error(`Invalid table name: ${tableName}`);
     }
 
     await this.query(`DELETE FROM ${tableName}`);
     logger.info(`Cleared all data from ${tableName} table`);
+  }
+
+  /**
+   * Get all file hashes (for incremental scanning)
+   */
+  async getAllFileHashes(): Promise<Record<string, string>> {
+    const sql = `SELECT file_path, hash FROM file_hashes`;
+    const result = await this.query(sql);
+
+    const hashes: Record<string, string> = {};
+    for (const row of result.rows) {
+      hashes[row.file_path] = row.hash;
+    }
+
+    return hashes;
+  }
+
+  /**
+   * Get hash for a specific file
+   */
+  async getFileHash(filePath: string): Promise<string | null> {
+    const sql = `
+      SELECT hash FROM file_hashes
+      WHERE file_path = '${this.escapeSQL(filePath)}'
+      LIMIT 1
+    `;
+
+    const result = await this.query(sql);
+    return result.rows.length > 0 ? result.rows[0].hash : null;
+  }
+
+  /**
+   * Upsert file hashes (for incremental scanning)
+   */
+  async upsertFileHashes(hashes: Record<string, string>, gitSha?: string): Promise<void> {
+    if (Object.keys(hashes).length === 0) return;
+
+    // Build INSERT OR REPLACE statement
+    const values = Object.entries(hashes).map(([filePath, hash]) => {
+      const gitShaPart = gitSha ? `, '${this.escapeSQL(gitSha)}'` : ', NULL';
+      return `('${this.escapeSQL(filePath)}', '${this.escapeSQL(hash)}'${gitShaPart})`;
+    }).join(',\n');
+
+    const sql = `
+      INSERT OR REPLACE INTO file_hashes
+        (file_path, hash${gitSha ? ', git_sha' : ''})
+      VALUES ${values}
+    `;
+
+    await this.query(sql);
+    logger.debug(`Upserted ${Object.keys(hashes).length} file hashes`);
+  }
+
+  /**
+   * Delete file hashes for removed files
+   */
+  async deleteFileHashes(filePaths: string[]): Promise<void> {
+    if (filePaths.length === 0) return;
+
+    const pathList = filePaths.map(p => `'${this.escapeSQL(p)}'`).join(',');
+    const sql = `DELETE FROM file_hashes WHERE file_path IN (${pathList})`;
+
+    await this.query(sql);
+    logger.debug(`Deleted ${filePaths.length} file hashes`);
+  }
+
+  /**
+   * Get files that have changed based on hash comparison
+   */
+  async getChangedFilesByHash(currentHashes: Record<string, string>): Promise<{
+    added: string[];
+    modified: string[];
+    deleted: string[];
+  }> {
+    const previousHashes = await this.getAllFileHashes();
+
+    const added: string[] = [];
+    const modified: string[] = [];
+    const deleted: string[] = [];
+
+    // Find added and modified files
+    for (const [filePath, currentHash] of Object.entries(currentHashes)) {
+      if (!previousHashes[filePath]) {
+        added.push(filePath);
+      } else if (previousHashes[filePath] !== currentHash) {
+        modified.push(filePath);
+      }
+    }
+
+    // Find deleted files
+    for (const filePath of Object.keys(previousHashes)) {
+      if (!currentHashes[filePath]) {
+        deleted.push(filePath);
+      }
+    }
+
+    return { added, modified, deleted };
   }
 }
 

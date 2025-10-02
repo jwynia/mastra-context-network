@@ -10,6 +10,9 @@ import { IncrementalScanner } from "../lib/incremental-scanner.ts";
 import { hashFiles } from "../utils/file-hash.ts";
 import { logger } from "../utils/logger.ts";
 import { config } from "../utils/config.ts";
+import { duckdbClient } from "../lib/duckdb-client.ts";
+import { kuzuClient } from "../lib/kuzu-client.ts";
+import { getCurrentSha, isGitRepo } from "../utils/git.ts";
 import { walk } from "@std/fs";
 
 interface WatchCommandOptions {
@@ -47,6 +50,20 @@ export const watchCommand = new Command()
 async function runWatch(options: WatchCommandOptions): Promise<void> {
   logger.info("Starting file watcher...");
 
+  // Initialize DuckDB client
+  await duckdbClient.initialize();
+
+  // Get git SHA if in a git repository
+  let gitSha: string | undefined;
+  if (await isGitRepo()) {
+    try {
+      gitSha = await getCurrentSha();
+      logger.debug(`Git SHA: ${gitSha}`);
+    } catch {
+      logger.warn("Could not get git SHA");
+    }
+  }
+
   // Get ignore patterns from config and options
   const ignorePatterns = [
     ...config.get("watchIgnorePatterns"),
@@ -60,9 +77,11 @@ async function runWatch(options: WatchCommandOptions): Promise<void> {
 
   // Initialize components
   const scanner = new IncrementalScanner();
-  let previousHashes = await getInitialHashes(options.path, ignorePatterns);
 
-  logger.success(`Initial scan: ${Object.keys(previousHashes).length} files`);
+  // Load previous hashes from DuckDB or calculate initial hashes
+  let previousHashes = await loadPreviousHashes(options.path, ignorePatterns);
+
+  logger.success(`Initial state: ${Object.keys(previousHashes).length} files tracked`);
 
   // Create watcher
   const watcher = new FileWatcher({
@@ -113,19 +132,50 @@ async function runWatch(options: WatchCommandOptions): Promise<void> {
         changes.deleted.forEach(f => logger.debug(`    - ${f}`));
       }
 
-      // Perform incremental scan if needed
+      // Handle deletions first
+      if (changes.deleted.length > 0) {
+        logger.info(`Removing ${changes.deleted.length} deleted file(s) from database...`);
+        for (const deletedFile of changes.deleted) {
+          try {
+            await kuzuClient.deleteFileData(deletedFile);
+            await duckdbClient.deleteFileHashes([deletedFile]);
+          } catch (error) {
+            logger.error(`Failed to delete ${deletedFile}: ${error}`);
+          }
+        }
+      }
+
+      // Perform incremental scan for added/modified files
       if (filesToRescan.length > 0) {
         logger.info(`Rescanning ${filesToRescan.length} file(s)...`);
 
-        // TODO: Call actual scanner here when scan.ts is refactored to support incremental mode
-        // For now, just log what would be scanned
-        logger.info("(Incremental scan implementation pending)");
+        try {
+          // Import scanner dynamically to avoid circular dependencies
+          const { CodebaseScanner } = await import("./scan.ts");
+
+          // Create scanner with incremental mode
+          const scanner = new (CodebaseScanner as any)({
+            path: options.path,
+            files: filesToRescan,
+            incremental: true,
+            verbose: options.verbose,
+          });
+
+          // Run the incremental scan
+          await scanner.scan();
+
+          logger.success("Incremental scan complete");
+        } catch (error) {
+          logger.error(`Incremental scan failed: ${error}`);
+        }
 
         // Update previous hashes
         previousHashes = currentHashes;
-        logger.success("Incremental update complete");
-      } else {
+      } else if (changes.deleted.length === 0) {
         logger.info("No changes requiring database update");
+      } else {
+        // Only deletions occurred, update hashes
+        previousHashes = currentHashes;
       }
     } catch (error) {
       logger.error("Error during incremental scan:", error);
@@ -134,9 +184,47 @@ async function runWatch(options: WatchCommandOptions): Promise<void> {
 }
 
 /**
- * Get initial file hashes for the watched directory
+ * Load previous hashes from DuckDB or calculate initial hashes
  */
-async function getInitialHashes(
+async function loadPreviousHashes(
+  path: string,
+  ignorePatterns: string[]
+): Promise<Record<string, string>> {
+  try {
+    // Try to load from DuckDB first
+    const dbHashes = await duckdbClient.getAllFileHashes();
+
+    if (Object.keys(dbHashes).length > 0) {
+      logger.debug(`Loaded ${Object.keys(dbHashes).length} file hashes from database`);
+      return dbHashes;
+    }
+  } catch (error) {
+    logger.debug(`Could not load hashes from database: ${error.message}`);
+  }
+
+  // Fall back to calculating initial hashes
+  logger.info("No previous hashes found, calculating initial state...");
+  const currentHashes = await calculateCurrentHashes(path, ignorePatterns);
+
+  // Persist initial hashes to database
+  try {
+    let gitSha: string | undefined;
+    if (await isGitRepo()) {
+      gitSha = await getCurrentSha();
+    }
+    await duckdbClient.upsertFileHashes(currentHashes, gitSha);
+    logger.debug("Persisted initial hashes to database");
+  } catch (error) {
+    logger.warn(`Could not persist initial hashes: ${error.message}`);
+  }
+
+  return currentHashes;
+}
+
+/**
+ * Calculate current file hashes for the watched directory
+ */
+async function calculateCurrentHashes(
   path: string,
   ignorePatterns: string[]
 ): Promise<Record<string, string>> {
@@ -169,7 +257,7 @@ async function getCurrentHashes(
   path: string,
   ignorePatterns: string[]
 ): Promise<Record<string, string>> {
-  return await getInitialHashes(path, ignorePatterns);
+  return await calculateCurrentHashes(path, ignorePatterns);
 }
 
 // Direct execution support
