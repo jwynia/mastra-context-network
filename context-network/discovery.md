@@ -55,6 +55,17 @@ context-network/
 │   ├── index.md                # Planning section index
 │   ├── roadmap.md              # Project roadmap
 │   └── milestones.md           # Milestone definitions
+├── mastra/                     # Mastra framework integration
+│   ├── index.md                # Mastra section index
+│   ├── typescript-integration.md # How TypeScript analysis enhances Mastra
+│   ├── query-patterns.md       # Comprehensive Mastra query examples
+│   ├── api-reference.md        # Mastra API reference
+│   ├── architecture.md         # Mastra framework architecture
+│   ├── patterns.md             # Mastra development patterns
+│   ├── recipes.md              # Common Mastra implementation recipes
+│   ├── testing.md              # Testing Mastra applications
+│   ├── deployment.md           # Deploying Mastra applications
+│   └── troubleshooting.md      # Common Mastra issues and solutions
 ├── meta/                       # Information about the network itself
 │   ├── index.md                # Meta section index
 │   ├── updates/                # Updates tracking (hierarchical)
@@ -123,6 +134,21 @@ For detailed guidance on when and how to implement hierarchical organization, se
 4. Check `processes/incident_response.md` for troubleshooting procedures
 5. Document any findings in the appropriate sections
 
+### For Mastra Framework Development
+1. Start with `mastra/index.md` for Mastra-specific overview
+2. Review `mastra/typescript-integration.md` to understand how analysis works with Mastra
+3. Explore `mastra/query-patterns.md` for comprehensive query examples
+4. Check `mastra/patterns.md` for development best practices
+5. Use `mastra/recipes.md` for common implementation patterns
+6. Refer to `mastra/troubleshooting.md` for debugging Mastra applications
+
+### For Analyzing Mastra Codebases
+1. Run `deno task scan --path ./your-mastra-project` to index the codebase
+2. Use `mastra/query-patterns.md` to find agents, workflows, and tools
+3. Query for dependencies: `deno task query "dependencies of src/agents/[agent].ts"`
+4. Trace execution: `deno task query "call graph of [function] depth 3"`
+5. Review `mastra/architecture.md` for framework understanding
+
 ## Creating New Content
 
 When creating new content for a software project:
@@ -134,6 +160,7 @@ When creating new content for a software project:
    - Use the Process layer for workflows and procedures
    - Use the Evolution layer for change tracking
    - Use the Cross-Cutting layer for patterns that apply across the system
+   - Use the Mastra layer for Mastra-specific patterns, queries, and integration knowledge
 
 2. Use the appropriate template from `meta/templates/`:
    - Use `adr_template.md` for architecture decisions

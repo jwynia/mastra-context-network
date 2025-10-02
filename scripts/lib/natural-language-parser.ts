@@ -148,6 +148,82 @@ export class NaturalLanguageParser {
       };
     }
 
+    // ========== MASTRA-SPECIFIC PATTERNS ==========
+
+    // Pattern: "show agents" / "find agents" / "list agents" / "all agents"
+    if (this.matchPattern(normalized, ["show agents", "find agents", "list agents", "all agents", "mastra agents"])) {
+      return {
+        builder: QueryTemplates.findMastraAgents(),
+        pattern: "find-mastra-agents",
+        confidence: 1.0,
+      };
+    }
+
+    // Pattern: "show workflows" / "find workflows" / "list workflows"
+    if (this.matchPattern(normalized, ["show workflows", "find workflows", "list workflows", "all workflows", "mastra workflows"])) {
+      return {
+        builder: QueryTemplates.findMastraWorkflows(),
+        pattern: "find-mastra-workflows",
+        confidence: 1.0,
+      };
+    }
+
+    // Pattern: "show tools" / "find tools" / "list tools" / "mastra tools"
+    if (this.matchPattern(normalized, ["show tools", "find tools", "list tools", "all tools", "mastra tools"])) {
+      return {
+        builder: QueryTemplates.findMastraTools(),
+        pattern: "find-mastra-tools",
+        confidence: 1.0,
+      };
+    }
+
+    // Pattern: "show integrations" / "find integrations" / "mastra integrations"
+    if (this.matchPattern(normalized, ["show integrations", "find integrations", "list integrations", "mastra integrations"])) {
+      return {
+        builder: QueryTemplates.findMastraIntegrations(),
+        pattern: "find-mastra-integrations",
+        confidence: 1.0,
+      };
+    }
+
+    // Pattern: "agent tools in X" / "tools in agent X" / "what tools does X use"
+    if (this.matchPattern(normalized, ["agent tools", "tools in agent", "what tools"])) {
+      const filePath = this.extractFilePath(normalized, ["agent tools", "tools in agent", "what tools", "use"]);
+      return {
+        builder: QueryTemplates.findAgentTools(filePath),
+        pattern: "find-agent-tools",
+        confidence: 0.9,
+      };
+    }
+
+    // Pattern: "workflow steps in X" / "steps in workflow X"
+    if (this.matchPattern(normalized, ["workflow steps", "steps in workflow"])) {
+      const filePath = this.extractFilePath(normalized, ["workflow steps", "steps in workflow", "in"]);
+      return {
+        builder: QueryTemplates.findWorkflowSteps(filePath),
+        pattern: "find-workflow-steps",
+        confidence: 0.9,
+      };
+    }
+
+    // Pattern: "show models" / "find models" / "model usage" / "llm usage"
+    if (this.matchPattern(normalized, ["show models", "find models", "model usage", "llm usage", "ai providers"])) {
+      return {
+        builder: QueryTemplates.findModelUsage(),
+        pattern: "find-model-usage",
+        confidence: 1.0,
+      };
+    }
+
+    // Pattern: "show llm providers" / "llm providers" / "ai providers"
+    if (this.matchPattern(normalized, ["llm providers", "ai providers", "show providers"])) {
+      return {
+        builder: QueryTemplates.findLLMProviders(),
+        pattern: "find-llm-providers",
+        confidence: 1.0,
+      };
+    }
+
     // No pattern matched - might be raw Cypher
     return {
       builder: null,
@@ -261,6 +337,16 @@ Natural Language Query Examples:
 - "symbols in src/main.ts"
 - "call graph of initialize depth 3"
 - "unused exports"
+
+**Mastra Framework (NEW!):**
+- "show agents" / "find agents" / "list agents"
+- "show workflows" / "find workflows"
+- "show tools" / "find tools" / "list tools"
+- "show integrations" / "mastra integrations"
+- "agent tools in src/agents/customer.ts"
+- "workflow steps in src/workflows/checkout.ts"
+- "show models" / "model usage" / "llm usage"
+- "llm providers" / "show providers"
 
 **Tip:** Use quotes for multi-word names: who calls "fetch user data"
 `;

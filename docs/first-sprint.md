@@ -76,6 +76,56 @@ deno task query "symbols in [file-you-changed]"
 
 ---
 
+### Bonus: Mastra Framework Exploration (Optional)
+
+**If you're working with Mastra projects, add these exercises:**
+
+**Tasks:**
+1. Scan a Mastra codebase (or create a sample agent/workflow)
+2. Try all Mastra-specific query patterns
+3. Understand how Mastra components map to TypeScript analysis
+
+**Exercises:**
+```bash
+# 1. Discover all Mastra components
+deno task query "show all agents"
+deno task query "show all workflows"
+deno task query "show all tools"
+deno task query "show integrations"
+
+# 2. Analyze agent structure
+deno task query "symbols in src/agents/[your-agent].ts"
+deno task query "agent tools in src/agents/[your-agent].ts"
+deno task query "dependencies of src/agents/[your-agent].ts"
+
+# 3. Analyze workflow structure
+deno task query "workflow steps in src/workflows/[your-workflow].ts"
+deno task query "call graph of [workflow-step] depth 2"
+
+# 4. Find model and LLM usage
+deno task query "show models"
+deno task query "llm providers"
+deno task query "who imports openai"
+
+# 5. Development workflow
+# Terminal 1:
+deno task watch --path src/agents
+
+# Terminal 2 - create new agent, then:
+deno task query "symbols in src/agents/new-agent.ts"
+deno task query "who calls newAgent"
+```
+
+**Mastra-Specific Success Criteria:**
+- Can find all agents, workflows, and tools in a codebase
+- Understand agent dependencies and tool usage
+- Can trace workflow execution
+- Know how to find LLM provider usage
+
+**See [Mastra Development Guide](mastra-guide.md) for comprehensive workflows.**
+
+---
+
 ## Week 2: First Custom Feature
 
 Choose **ONE** of these features based on your needs:
@@ -195,6 +245,82 @@ open deps.png
 ```
 
 **Time:** 4-8 hours
+
+---
+
+### Option D: Mastra Agent Discovery Dashboard (Mastra-Specific)
+
+**Create a command that shows comprehensive Mastra project overview**
+
+1. Create `scripts/commands/mastra-overview.ts`:
+```typescript
+export const mastraOverviewCommand = new Command()
+  .name("mastra-overview")
+  .description("Show comprehensive Mastra project overview")
+  .option("--json", "Output as JSON")
+  .action(async (options) => {
+    await kuzuClient.initialize();
+
+    // Query agents
+    const agents = await kuzuClient.query(
+      "MATCH (s:Symbol) WHERE s.name = 'createAgent' RETURN s.file, s.line"
+    );
+
+    // Query workflows
+    const workflows = await kuzuClient.query(
+      "MATCH (s:Symbol) WHERE s.name = 'createWorkflow' RETURN s.file, s.line"
+    );
+
+    // Query tools
+    const tools = await kuzuClient.query(
+      "MATCH (s:Symbol) WHERE s.name = 'createTool' RETURN s.file, s.line"
+    );
+
+    // Query integrations
+    const integrations = await kuzuClient.query(
+      "MATCH (i:Import) WHERE i.imported_path CONTAINS '@mastra/' RETURN DISTINCT i.imported_path"
+    );
+
+    if (options.json) {
+      console.log(JSON.stringify({
+        agents: agents.rows,
+        workflows: workflows.rows,
+        tools: tools.rows,
+        integrations: integrations.rows
+      }, null, 2));
+    } else {
+      console.log("=== Mastra Project Overview ===\n");
+      console.log(`Agents: ${agents.rows.length}`);
+      console.log(`Workflows: ${workflows.rows.length}`);
+      console.log(`Tools: ${tools.rows.length}`);
+      console.log(`Integrations: ${integrations.rows.length}\n`);
+
+      console.log("Agents:");
+      agents.rows.forEach(r => console.log(`  - ${r.file}:${r.line}`));
+
+      console.log("\nWorkflows:");
+      workflows.rows.forEach(r => console.log(`  - ${r.file}:${r.line}`));
+
+      console.log("\nTools:");
+      tools.rows.forEach(r => console.log(`  - ${r.file}:${r.line}`));
+
+      console.log("\nIntegrations:");
+      integrations.rows.forEach(r => console.log(`  - ${r.imported_path}`));
+    }
+  });
+```
+
+2. Register in `scripts/cli.ts`
+
+3. Test:
+```bash
+deno task mastra-overview
+deno task mastra-overview --json
+```
+
+**Bonus:** Add LLM provider detection and agent-tool relationship mapping.
+
+**Time:** 3-5 hours
 
 ---
 

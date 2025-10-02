@@ -275,4 +275,98 @@ export class QueryTemplates {
   private static escapeCypher(str: string): string {
     return str.replace(/'/g, "\\'").replace(/"/g, '\\"');
   }
+
+  // ============================================================================
+  // MASTRA-SPECIFIC QUERY TEMPLATES
+  // ============================================================================
+
+  /**
+   * Find all Mastra agents (createAgent calls)
+   */
+  static findMastraAgents(): QueryBuilder {
+    return new QueryBuilder()
+      .match("(s:Symbol)")
+      .where("s.name = 'createAgent'")
+      .return("s.file AS file", "s.line AS line")
+      .orderBy("s.file");
+  }
+
+  /**
+   * Find all Mastra workflows (createWorkflow calls)
+   */
+  static findMastraWorkflows(): QueryBuilder {
+    return new QueryBuilder()
+      .match("(s:Symbol)")
+      .where("s.name = 'createWorkflow'")
+      .return("s.file AS file", "s.line AS line")
+      .orderBy("s.file");
+  }
+
+  /**
+   * Find all Mastra tools (createTool calls)
+   */
+  static findMastraTools(): QueryBuilder {
+    return new QueryBuilder()
+      .match("(s:Symbol)")
+      .where("s.name = 'createTool'")
+      .return("s.file AS file", "s.line AS line")
+      .orderBy("s.file");
+  }
+
+  /**
+   * Find Mastra integrations (imports from @mastra/*)
+   */
+  static findMastraIntegrations(): QueryBuilder {
+    return new QueryBuilder()
+      .match("(i:Import)")
+      .where("i.imported_path CONTAINS '@mastra/'")
+      .return("DISTINCT i.source_file AS file", "i.imported_path AS integration")
+      .orderBy("file");
+  }
+
+  /**
+   * Find agent tool usage (what tools does an agent use)
+   */
+  static findAgentTools(agentFile: string): QueryBuilder {
+    return new QueryBuilder()
+      .match("(i:Import)")
+      .where(`i.source_file = '${this.escapeCypher(agentFile)}'`)
+      .where("i.imported_path CONTAINS 'tool'")
+      .return("i.imported_path AS tool", "i.specifiers AS imported")
+      .orderBy("tool");
+  }
+
+  /**
+   * Find workflow steps (createStep calls in a workflow file)
+   */
+  static findWorkflowSteps(workflowFile: string): QueryBuilder {
+    return new QueryBuilder()
+      .match("(s:Symbol)")
+      .where(`s.file = '${this.escapeCypher(workflowFile)}'`)
+      .where("s.name = 'createStep'")
+      .return("s.name AS step", "s.line AS line")
+      .orderBy("s.line");
+  }
+
+  /**
+   * Find model usage (OpenAI, Anthropic, etc.)
+   */
+  static findModelUsage(): QueryBuilder {
+    return new QueryBuilder()
+      .match("(i:Import)")
+      .where("i.imported_path CONTAINS 'openai' OR i.imported_path CONTAINS 'anthropic' OR i.imported_path CONTAINS '@mastra/'")
+      .return("DISTINCT i.source_file AS file", "i.imported_path AS model_provider")
+      .orderBy("file");
+  }
+
+  /**
+   * Find LLM provider usage
+   */
+  static findLLMProviders(): QueryBuilder {
+    return new QueryBuilder()
+      .match("(i:Import)")
+      .where("i.imported_path CONTAINS 'openai' OR i.imported_path CONTAINS 'anthropic' OR i.imported_path CONTAINS 'claude' OR i.imported_path CONTAINS 'llama'")
+      .return("DISTINCT i.imported_path AS provider", "COUNT(i.source_file) AS usage_count")
+      .orderBy("usage_count", "DESC");
+  }
 }

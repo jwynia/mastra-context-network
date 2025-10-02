@@ -363,10 +363,15 @@ When integration tests fail, you end up manually testing anyway to understand wh
 
 ## Current Status
 
-### ✅ Completed
+### ✅ Stage 1: TypeScript Foundation (COMPLETE)
+**Focus:** Build solid TypeScript analysis foundation without framework-specific features
+
+**Completed Components:**
 - Database installation (Kuzu + DuckDB)
 - Database initialization with schemas
-- Basic scan-codebase.ts implementation
+- AST scanning for TypeScript/JavaScript
+- Symbol extraction (functions, classes, types, interfaces)
+- Relationship tracking (calls, imports, extends, implements)
 - Environment setup (Deno + Node)
 - Configuration files
 - **Phase 1.3: Core Utilities** (2025-09-30)
@@ -374,21 +379,58 @@ When integration tests fail, you end up manually testing anyway to understand wh
   - logger.ts enhanced with JSON mode
   - config.ts enhanced with validation
   - 48 test cases, 100% pass rate
-- **Phase 3.1 & 3.2: Watch System & Incremental Scanning (Foundations)** (2025-09-30)
+- **Phase 2.2: Query System** (Complete)
+  - query-builder.ts with 13 core query templates
+  - natural-language-parser.ts with NL→Cypher conversion
+  - Query command with multiple output formats
+  - Help system with template documentation
+- **Phase 3.1 & 3.2: Watch System & Incremental Scanning** (2025-09-30)
   - debounce.ts utility with 10 test cases
   - incremental-scanner.ts with 10 test cases
   - file-watcher.ts using Deno.watchFs
   - watch command CLI integrated
+  - Hash-based change detection
+  - Database persistence across restarts
+  - Deletion handling
   - 68 total test cases, 100% pass rate
 
-### 🚧 In Progress
-- **Phase 3.2: Complete integration** with scanner and database
+**Result:** Rock-solid TypeScript analysis infrastructure that works with any TypeScript codebase
+
+### 🚧 Stage 2: Mastra Framework Integration (CURRENT)
+**Focus:** Layer Mastra-specific knowledge on top of TypeScript foundation
+
+**Completed:**
+- ✅ Copied 11 Mastra documentation files to context-network/mastra/
+- ✅ Created typescript-integration.md bridge document
+- ✅ Created query-patterns.md with comprehensive Mastra examples
+- ✅ Copied 23 .claude commands (4 Mastra-specific + 19 general)
+- ✅ Added 8 Mastra query templates to query-builder.ts:
+  - findMastraAgents(), findMastraWorkflows(), findMastraTools()
+  - findMastraIntegrations(), findAgentTools(), findWorkflowSteps()
+  - findModelUsage(), findLLMProviders()
+- ✅ Added 8 Mastra natural language patterns to natural-language-parser.ts
+- ✅ Updated README.md with Mastra use cases
+- ✅ Created docs/mastra-guide.md with comprehensive workflows
+- ✅ Updated docs/first-sprint.md with Mastra exercises
+- ✅ Updated context-network/discovery.md with Mastra navigation
+- ✅ Created context-network/mastra/index.md
+
+**Result:** TypeScript foundation now Mastra-aware with agent/workflow/tool analysis built-in
+
+**Total Query Templates:** 21 (13 TypeScript core + 8 Mastra-specific)
 
 ### 📋 Up Next
-- Complete Phase 3.2: Integrate watch system with scanner + database
-- Phase 3.3: Git Hooks Integration
-- Phase 1.1: Restructure project layout (optional)
-- Phase 1.2: Extract library modules (optional)
+- **Stage 3: Advanced Mastra Features** (Optional)
+  - Deep Mastra AST analysis (agent structure validation)
+  - Workflow step validation
+  - Tool contract checking
+  - Runtime integration for live monitoring
+  - Mastra-specific linting rules
+- **Continue TypeScript Foundation Phases:**
+  - Phase 3.3: Git Hooks Integration
+  - Phase 4: Type System Analysis
+  - Phase 5: Dependency Analysis
+  - Phase 6: Code Intelligence Features
 
 ---
 

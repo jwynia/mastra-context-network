@@ -1,6 +1,6 @@
 # TypeScript Code Analysis Template
 
-A complete foundation for building TypeScript code analysis tools with semantic graph databases, incremental file watching, and natural language queries.
+A complete foundation for building TypeScript code analysis tools with semantic graph databases, incremental file watching, and natural language queries. **Optimized for Mastra framework development** with agent, workflow, and tool analysis built-in.
 
 ## 🚀 What This Template Provides
 
@@ -32,7 +32,9 @@ A complete foundation for building TypeScript code analysis tools with semantic 
 - "who calls fetchUser"
 - "show exports of src/utils/helper.ts"
 - "dependencies of app.ts"
-- 13 query templates + raw Cypher support
+- "show all agents" (Mastra)
+- "show workflows" (Mastra)
+- 21 query templates + raw Cypher support
 
 ## ⚡ Quick Start (5 Minutes)
 
@@ -241,6 +243,120 @@ deno task watch
 deno task query "show symbols in file-you-just-edited.ts"
 ```
 
+## 🤖 Mastra Framework Support
+
+This template includes **Mastra-specific query patterns** for analyzing agents, workflows, tools, and integrations.
+
+### Find All Mastra Components
+
+```bash
+# Discover all agents
+deno task query "show all agents"
+deno task query "find agents"
+
+# Discover all workflows
+deno task query "show workflows"
+deno task query "list workflows"
+
+# Discover all tools
+deno task query "show tools"
+deno task query "find tools"
+
+# Find integrations
+deno task query "show integrations"
+deno task query "mastra integrations"
+```
+
+### Analyze Agent Structure
+
+```bash
+# What tools does an agent use?
+deno task query "agent tools in src/agents/customer-service.ts"
+
+# What does an agent depend on?
+deno task query "dependencies of src/agents/sales-agent.ts"
+
+# What imports does an agent have?
+deno task query "imports in src/agents/support.ts"
+
+# Find agents using specific tools
+deno task query "who calls weatherTool"
+```
+
+### Analyze Workflow Structure
+
+```bash
+# What steps are in a workflow?
+deno task query "workflow steps in src/workflows/checkout.ts"
+
+# What does a workflow depend on?
+deno task query "dependencies of src/workflows/onboarding.ts"
+
+# Which workflows use specific tools?
+deno task query "dependents of src/tools/stripe.ts"
+
+# Trace step execution
+deno task query "call graph of processPayment depth 3"
+```
+
+### Find Model and LLM Usage
+
+```bash
+# Show all model usage
+deno task query "show models"
+deno task query "model usage"
+deno task query "llm usage"
+
+# Find LLM providers
+deno task query "llm providers"
+deno task query "show providers"
+
+# Find specific provider usage
+deno task query "who imports openai"
+deno task query "who imports anthropic"
+```
+
+### Development Workflow
+
+```bash
+# 1. Start watch mode for incremental updates
+deno task watch --path src/agents
+
+# 2. As you develop, query your code structure
+deno task query "symbols in src/agents/new-agent.ts"
+deno task query "dependencies of src/agents/new-agent.ts"
+
+# 3. Find patterns to follow
+deno task query "show all agents"
+deno task query "exports in src/agents/example-agent.ts"
+
+# 4. Debug issues
+deno task query "call graph of problematicStep depth 3"
+deno task query "who calls suspiciousFunction"
+```
+
+### Onboarding to a Mastra Project
+
+```bash
+# 1. Initial scan
+deno task scan --path ./your-mastra-project
+
+# 2. Discover project structure
+deno task query "show all agents"
+deno task query "show all workflows"
+deno task query "show all tools"
+
+# 3. Understand main components
+deno task query "symbols in src/index.ts"
+deno task query "exports in src/index.ts"
+
+# 4. Deep dive into specific areas
+deno task query "dependencies of src/agents/main.ts"
+deno task query "call graph of mainWorkflow depth 2"
+```
+
+**See [context-network/mastra/query-patterns.md](context-network/mastra/query-patterns.md) for comprehensive Mastra query examples.**
+
 ## 🔧 Customization
 
 ### Adding New Query Templates
@@ -292,9 +408,11 @@ See `docs/adding-commands.md` for detailed guide.
 ## 📖 Documentation
 
 - **[First Sprint Guide](docs/first-sprint.md)** - Recommended tasks for your first 1-2 weeks
+- **[Mastra Development Guide](docs/mastra-guide.md)** - Using this template for Mastra projects
 - **[Adding Commands](docs/adding-commands.md)** - How to extend the CLI
 - **[Query Guide](docs/query-guide.md)** - Complete query reference
 - **[Context Network](context-network/discovery.md)** - Architecture and design docs
+- **[Mastra Query Patterns](context-network/mastra/query-patterns.md)** - Comprehensive Mastra query examples
 
 ## 🧪 Testing
 
